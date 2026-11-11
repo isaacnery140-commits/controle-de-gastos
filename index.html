@@ -313,7 +313,7 @@ function erroPT(e){const m=(e&&e.message)||String(e);
   if(/Email not confirmed/i.test(m))return 'Confirme seu e-mail antes de entrar (veja a caixa de entrada e o spam).';
   if(/already registered/i.test(m))return 'Esse e-mail já tem conta. Use "Entrar".';
   if(/Password should be/i.test(m))return 'A senha precisa ter pelo menos 6 caracteres.';
-  if(/rate limit/i.test(m))return 'Muitas tentativas. Espere alguns minutos e tente de novo.';
+  if(/rate limit|only request this after/i.test(m))return 'O e-mail de confirmação já foi enviado. Veja sua caixa de entrada e o spam (remetente Supabase). Se não chegar, espere alguns minutos antes de tentar de novo.';
   if(/Failed to fetch|NetworkError/i.test(m))return 'Sem conexão com o servidor. Verifique a internet.';
   return m;}
 
@@ -328,6 +328,7 @@ $('f-login').onsubmit=async ev=>{ev.preventDefault();msg('l-msg');$('b-entrar').
   $('b-entrar').disabled=false;if(error)msg('l-msg',erroPT(error));};
 $('b-criar').onclick=async()=>{const email=$('l-email').value.trim(),password=$('l-senha').value;
   if(!email||password.length<6){msg('l-msg','Preencha o e-mail e uma senha de pelo menos 6 caracteres, depois clique em "Criar conta".','warn');return;}
+  const b=$('b-criar');b.disabled=true;setTimeout(()=>b.disabled=false,60000);
   const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
   if(error)return msg('l-msg',erroPT(error));
   if(data.session)return;
