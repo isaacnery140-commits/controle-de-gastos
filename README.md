@@ -11,13 +11,17 @@ App de controle de gastos pessoais, no mesmo estilo do **Programador Raynen**: u
 - **Despesas por categoria** com orçamento mensal (marca na barra e aviso quando passa).
 - **Gráfico dos últimos 6 meses** (receitas, despesas e linha de saldo).
 - Busca e filtros, exportação em **CSV** (abre no Excel), tema claro/escuro.
+- **Separação automática por item**: ao digitar a descrição (ou importar a fatura), a categoria é escolhida sozinha (iFood, mercado, itens de casa, combustível, compras…). Quando você corrige, o app aprende (tabela `gastos_regras`).
+- **Importar fatura do cartão** (PDF, CSV ou OFX): lê cada compra no próprio navegador (pdf.js), detecta vencimento, total, parcelas, pagamentos/estornos e compras já importadas; você confere e importa. Dá para desfazer uma importação inteira.
+- **Relatório do mês**: totais, gastos por categoria com média dos meses anteriores e variação, onde você mais gastou (por estabelecimento) e o detalhe de cada categoria. Imprime ou salva em PDF.
 - Categorias padrão criadas no primeiro acesso; dá para renomear, mudar a cor, definir orçamento, criar e excluir.
 
 ## Estrutura
 
 - `index.html`: o app inteiro (HTML + CSS + JS).
 - `manifest.webmanifest`, `icon-192.png`, `icon-512.png`: ícone e instalação no celular.
-- `supabase/gastos_inicial.sql`: tabelas e regras de segurança.
+- `supabase/*.sql`: tabelas e regras de segurança.
+- `src/fatura.js`: cópia legível do código de categorização, leitura de fatura e relatório (o mesmo código está dentro do `index.html`).
 
 ## Banco de dados
 

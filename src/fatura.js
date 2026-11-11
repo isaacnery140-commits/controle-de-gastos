@@ -122,7 +122,7 @@ $('fx-ler').onclick=async()=>{msg('fx-msg');const f=$('fx-arq').files[0];if(!f)r
 
 async function abrirRevisao(arquivo,r){
   const venc=r.venc||(()=>{const d=new Date();return iso(d.getFullYear(),d.getMonth(),Math.min(10,d.getDate()));})();
-  const itens=r.itens.map((it,i)=>{const p=norm(it.desc).match(RX_PARC);const parc=p&&+p[1]>=1&&+p[1]<=+p[2]&&+p[2]>=2&&+p[2]<=48?[+p[1],+p[2]]:null;
+  const itens=r.itens.map((it,i)=>{const p=it.desc.toUpperCase().match(RX_PARC);const parc=p&&+p[1]>=1&&+p[1]<=+p[2]&&+p[2]>=2&&+p[2]<=48?[+p[1],+p[2]]:null;
     const tipo=it.credito?'receita':'despesa',s=sugerirCat(it.desc,tipo);
     return {...it,i,parc,sel:!it.credito,cat:s.cat?.id||'',sug:s.cat?.id||'',fonte:s.fonte,desc2:bonito(it.desc)};});
   // parcelas repetidas da mesma compra (seção "próximas faturas"): fica só a de menor número
@@ -221,12 +221,12 @@ function abrirRelatorio(){const L=doMes(),desp=L.filter(l=>l.tipo==='despesa'),r
    ${cats.map(({k,c,ls,t})=>{const m=media(k),o=Number(c.orcamento)||0;return `<tr><td><i class="dot" style="background:${esc(c.cor)}"></i> ${esc(c.nome)}</td><td class="n">${ls.length}</td><td class="n mono"><b>${fmt(t)}</b></td><td class="n">${tD?Math.round(t/tD*100):0}%</td><td class="n mono">${m==null?'–':fmt(m)}</td>${varia(t,m)}<td class="n ${o&&t>o?'neg':''}">${o?fmt(o):'–'}</td></tr>`;}).join('')||'<tr><td colspan="7" class="hint">Nenhuma despesa neste mês.</td></tr>'}
    </tbody><tfoot><tr><td>Total</td><td class="n">${desp.length}</td><td class="n mono"><b>${fmt(tD)}</b></td><td class="n">100%</td><td></td><td></td><td></td></tr></tfoot></table>
    <h2>Onde você mais gastou</h2>
-   <table class="tab"><thead><tr><th>Estabelecimento</th><th>Categoria</th><th class="n">Vezes</th><th class="n">Total</th></tr></thead><tbody>
+   <table class="tab tab-est"><thead><tr><th>Estabelecimento</th><th>Categoria</th><th class="n">Vezes</th><th class="n">Total</th></tr></thead><tbody>
    ${ests.map(e=>`<tr><td>${esc(e.nome)}</td><td>${esc(catPorId(e.cat)?.nome||'–')}</td><td class="n">${e.n}</td><td class="n mono">${fmt(e.t)}</td></tr>`).join('')||'<tr><td colspan="4" class="hint">–</td></tr>'}
    </tbody></table>
    <h2>Detalhe de cada categoria</h2>
    ${cats.map(({c,ls,t})=>`<div class="rel-cat"><h3><i class="dot" style="background:${esc(c.cor)}"></i> ${esc(c.nome)} <span class="mono">${fmt(t)}</span></h3>
-     <table class="tab"><tbody>${ls.map(l=>`<tr><td class="d">${dt(l.data_compra||l.data)}</td><td>${esc(l.descricao||c.nome)}${l.pago?'':' <span class="tag">a pagar</span>'}</td><td>${FORMAS[l.forma]||''}</td><td class="n mono">${fmt(l.valor)}</td></tr>`).join('')}</tbody></table></div>`).join('')}
+     <table class="tab tab-det"><tbody>${ls.map(l=>`<tr><td class="d">${dt(l.data_compra||l.data)}</td><td>${esc(l.descricao||c.nome)}${l.pago?'':' <span class="tag">a pagar</span>'}</td><td>${FORMAS[l.forma]||''}</td><td class="n mono">${fmt(l.valor)}</td></tr>`).join('')}</tbody></table></div>`).join('')}
    ${rec.length?`<h2>Receitas</h2><table class="tab"><tbody>${rec.sort((a,b)=>a.data.localeCompare(b.data)).map(l=>`<tr><td class="d">${dt(l.data)}</td><td>${esc(l.descricao||catPorId(l.categoria_id)?.nome||'')}</td><td>${esc(catPorId(l.categoria_id)?.nome||'')}</td><td class="n mono pos">${fmt(l.valor)}</td></tr>`).join('')}</tbody></table>`:''}`;
   $('rel').hidden=false;document.body.classList.add('travado');$('rel').scrollTop=0;}
 $('b-rel').onclick=abrirRelatorio;
