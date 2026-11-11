@@ -42,12 +42,18 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 h1{font-family:var(--f-display);font-weight:800;font-size:clamp(22px,3vw,30px);letter-spacing:-.01em;margin:0;line-height:1.1}
 h1 span{color:var(--gold)}
 .sub{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
-.head-r{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.tools{display:flex;gap:8px}
+@media (max-width:620px){
+  header{display:grid;grid-template-columns:1fr auto;grid-template-areas:"tit tools" "mes mes";gap:10px}
+  .tit{grid-area:tit;min-width:0}.tools{grid-area:tools}.mes{grid-area:mes;justify-content:space-between}
+  .mes output{flex:1;min-width:0}
+}
 .mes{display:flex;align-items:center;gap:4px;font-family:var(--f-display);font-weight:700;font-size:17px}
 .mes output{min-width:150px;text-align:center;text-transform:capitalize}
 .grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;align-items:start}
 .col{display:flex;flex-direction:column;gap:18px;min-width:0}
-@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:860px){.grid{display:flex;flex-direction:column}.grid>.col{display:contents}
+  #sec-resumo{order:1}#sec-form{order:2}#sec-cat{order:3}#sec-lista{order:4}#sec-meses{order:5}#sec-cats{order:6}}
 section{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 h2{font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin:0;color:var(--muted)}
 .sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
@@ -88,7 +94,7 @@ button:disabled{opacity:.5;cursor:default}
 .card.saldo{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--gold)}
 /* barras por categoria */
 .bars{display:flex;flex-direction:column;gap:9px;margin:0;padding:0;list-style:none}
-.bars li{display:grid;grid-template-columns:minmax(90px,150px) 1fr auto;align-items:center;gap:10px;font-size:13px}
+.bars li{display:grid;grid-template-columns:minmax(90px,150px) 1fr 118px;align-items:center;gap:10px;font-size:13px}
 .bars .nm{display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .dot{width:10px;height:10px;border-radius:50%;flex:none}
 .track{position:relative;height:14px;background:var(--bg);border:1px solid var(--line);border-radius:3px;overflow:hidden}
@@ -97,7 +103,7 @@ button:disabled{opacity:.5;cursor:default}
 .bars .vl{font-family:var(--f-mono);text-align:right;white-space:nowrap}
 .bars .vl small{display:block;color:var(--muted);font-size:11px}
 .over .vl{color:var(--err)}
-@media (max-width:520px){.bars li{grid-template-columns:1fr auto}.bars .track{grid-column:1 / -1;grid-row:2}}
+@media (max-width:520px){.bars li{grid-template-columns:1fr 118px}.bars .track{grid-column:1 / -1;grid-row:2}}
 /* grafico 6 meses */
 .chart svg{width:100%;height:auto;display:block}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
@@ -158,17 +164,17 @@ details[open]>summary::after{content:" −"}
   <!-- app -->
   <div id="tela-app" class="col" hidden>
     <header>
-      <div>
+      <div class="tit">
         <h1>Controle de <span>Gastos</span></h1>
         <div class="sub" id="u-email"></div>
       </div>
-      <div class="head-r">
-        <div class="mes">
-          <button class="icon" id="m-ant" aria-label="Mês anterior">‹</button>
-          <output id="m-nome"></output>
-          <button class="icon" id="m-prox" aria-label="Próximo mês">›</button>
-        </div>
+      <div class="mes">
+        <button class="icon" id="m-ant" aria-label="Mês anterior">‹</button>
+        <output id="m-nome"></output>
+        <button class="icon" id="m-prox" aria-label="Próximo mês">›</button>
         <button class="icon" id="b-hoje">Hoje</button>
+      </div>
+      <div class="tools">
         <button class="icon" id="b-tema" aria-label="Trocar tema">◐</button>
         <button class="icon" id="b-sair">Sair</button>
       </div>
@@ -206,7 +212,7 @@ details[open]>summary::after{content:" −"}
           </form>
         </section>
 
-        <section>
+        <section id="sec-cats">
           <details id="d-cats">
             <summary>Categorias e orçamento</summary>
             <div class="col" style="gap:12px;margin-top:12px">
@@ -229,7 +235,7 @@ details[open]>summary::after{content:" −"}
       </div>
 
       <div class="col">
-        <section>
+        <section id="sec-resumo">
           <h2>Resumo do mês</h2>
           <div class="cards">
             <div class="card"><span class="k">Receitas</span><span class="v pos" id="r-rec">–</span><span class="d" id="r-rec-d"></span></div>
@@ -239,18 +245,18 @@ details[open]>summary::after{content:" −"}
           </div>
         </section>
 
-        <section>
+        <section id="sec-cat">
           <div class="sec-head"><h2>Despesas por categoria</h2><span class="hint" id="cat-tot"></span></div>
           <ul class="bars" id="g-cats"></ul>
         </section>
 
-        <section class="chart">
+        <section class="chart" id="sec-meses">
           <div class="sec-head"><h2>Últimos 6 meses</h2>
             <div class="legend"><span><i style="background:var(--ok)"></i>Receitas</span><span><i style="background:var(--err)"></i>Despesas</span><span><i style="background:var(--gold)"></i>Saldo</span></div></div>
           <div id="g-meses"></div>
         </section>
 
-        <section>
+        <section id="sec-lista">
           <div class="sec-head"><h2>Lançamentos</h2><button class="ghost small" id="b-csv">Exportar CSV</button></div>
           <div class="filtros">
             <input id="q" type="search" placeholder="Buscar descrição">
@@ -449,11 +455,12 @@ function renderMeses(){const cs=getComputedStyle(document.documentElement),cor=n
   const dados=ms.map(o=>{const L=doMes(o);const r=soma(L,'receita'),d=soma(L,'despesa');return {o,r,d,s:r-d};});
   const W=640,H=230,pl=58,pr=10,pt=12,pb=30,cw=(W-pl-pr)/6;
   const maxV=Math.max(1,...dados.map(x=>Math.max(x.r,x.d))),minS=Math.min(0,...dados.map(x=>x.s));
-  const top=niceMax(maxV),bot=minS<0?-niceMax(-minS):0;
+  const step=niceStep(Math.max(maxV,-minS)/4),top=step*Math.ceil(maxV/step),bot=minS<0?-step*Math.ceil(-minS/step):0,nt=Math.round((top-bot)/step);
   const y=v=>pt+(top-v)/(top-bot)*(H-pt-pb);
   let g='';
-  for(let i=0;i<=4;i++){const v=bot+(top-bot)*i/4;g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="${cor('--line')}" stroke-width="1"/>
+  for(let i=0;i<=nt;i++){const v=bot+step*i;g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="${cor('--line')}" stroke-width="1"/>
     <text x="${pl-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="${cor('--muted')}" font-family="IBM Plex Mono,monospace">${curto(v)}</text>`;}
+  if(bot<0)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(0)}" y2="${y(0)}" stroke="${cor('--muted')}" stroke-width="1"/>`;
   const bw=Math.min(22,cw*0.28);
   dados.forEach((x,i)=>{const cx=pl+cw*i+cw/2,atual=i===5;
     g+=`<rect x="${cx-bw-1}" y="${y(x.r)}" width="${bw}" height="${Math.max(0,y(0)-y(x.r))}" rx="2" fill="${cor('--ok')}" opacity="${atual?1:.75}"><title>Receitas ${fmt(x.r)}</title></rect>`;
@@ -463,7 +470,7 @@ function renderMeses(){const cs=getComputedStyle(document.documentElement),cor=n
   g+=`<polyline points="${pts}" fill="none" stroke="${cor('--gold')}" stroke-width="2.5" stroke-linejoin="round"/>`;
   dados.forEach((x,i)=>g+=`<circle cx="${pl+cw*i+cw/2}" cy="${y(x.s)}" r="4" fill="${cor('--gold')}" stroke="${cor('--panel')}" stroke-width="2"><title>Saldo ${fmt(x.s)}</title></circle>`);
   $('g-meses').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Receitas, despesas e saldo dos últimos 6 meses">${g}</svg>`;}
-function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p;}
+function niceStep(v){v=Math.max(v,1);const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=5?5:10)*p;}
 function curto(v){const a=Math.abs(v);return (v<0?'-':'')+(a>=1000?(a/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k':Math.round(a));}
 
 function filtrados(){const q=$('q').value.trim().toLowerCase(),qc=$('q-cat').value,qt=$('q-tipo').value;
