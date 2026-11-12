@@ -290,7 +290,6 @@ body.travado{overflow:hidden}
             <input id="rp-txt" placeholder="Ex.: gastei 100 no iFood" enterkeyhint="send" aria-label="Frase do lançamento">
             <button type="submit">Lançar</button>
           </form>
-          <p class="hint">Toque no 🎤 e fale, por exemplo: "gastei 54,90 de gasolina", "recebi 2.500 de salário", "TV de 2000 em 10 vezes no cartão" ou "ontem paguei 80 no mercado no débito". Eu entendo o valor, a categoria, a data e a forma de pagamento e já lanço. Também dá para digitar a frase.</p>
           <p id="rp-msg" class="msg" hidden></p>
         </section>
 
@@ -326,8 +325,7 @@ body.travado{overflow:hidden}
         </section>
 
         <section id="sec-atalho-fat">
-          <h2>Fatura do cartão</h2>
-          <p class="hint">No Painel entra só o valor da fatura. O detalhe de cada compra fica na aba Faturas.</p>
+          <h2>Faturas do cartão</h2>
           <div class="actions"><button type="button" class="ghost" data-ir="faturas">💳 Abrir Faturas</button></div>
         </section>
 
@@ -335,7 +333,6 @@ body.travado{overflow:hidden}
           <details id="d-cats">
             <summary>Categorias e orçamento</summary>
             <div class="col" style="gap:12px;margin-top:12px">
-              <p class="hint">O orçamento é o limite por mês. Aparece como uma marca na barra da categoria.</p>
               <div class="seg" role="group" aria-label="Tipo de categoria" id="c-seg">
                 <button type="button" class="d" data-tipo="despesa" aria-pressed="true">Despesas</button>
                 <button type="button" class="r" data-tipo="receita" aria-pressed="false">Receitas</button>
@@ -389,20 +386,16 @@ body.travado{overflow:hidden}
     <div class="grid" id="pg-faturas" hidden>
       <div class="col">
         <section id="sec-fatura">
-          <h2>Adicionar fatura com o arquivo</h2>
-          <p class="hint">Envie o PDF da fatura (ou a planilha / CSV / OFX do banco). Eu leio cada compra e separo por categoria. Você confere e escolhe se no Painel entra <b>só o valor total</b> ou <b>cada compra</b>. O arquivo é lido no seu aparelho.</p>
+          <h2>Adicionar fatura</h2>
           <label>Cartão<input id="fx-cartao" maxlength="40" list="cartoes" placeholder="Ex.: Nubank, Itaú, Inter"></label>
           <datalist id="cartoes"></datalist>
-          <label>Arquivo da fatura (PDF, planilha, CSV ou OFX)<input type="file" id="fx-arq"></label>
+          <label>Arquivo<input type="file" id="fx-arq"></label>
           <span class="hint" id="fx-nome"></span>
-          <p class="hint so-pc">No computador: clique em "Escolher arquivo" e abra a pasta <b>Downloads</b>, ou arraste o arquivo para dentro deste quadro.</p>
-          <p class="hint so-cel">No celular: o PDF baixado fica em <b>Arquivos → Downloads</b> (iPhone) ou <b>Downloads</b> (Android). Se a fatura estiver no app do banco, use <b>Compartilhar → Salvar em Arquivos</b> antes.</p>
           <label id="w-senha" hidden>Senha do PDF<input type="password" id="fx-senha" autocomplete="off" placeholder="Ex.: primeiros dígitos do CPF"></label>
           <div class="actions"><button type="button" id="fx-ler">Ler fatura</button><button type="button" class="ghost small" id="fx-tem-senha">O PDF tem senha</button></div>
           <p id="fx-msg" class="msg" hidden></p>
-          <details id="fx-colar"><summary>Colar o texto da fatura</summary>
+          <details id="fx-colar"><summary>Colar texto da fatura</summary>
             <div class="col" style="gap:8px;margin-top:8px">
-              <p class="hint">Copie o texto da fatura (do bloco de notas, do e-mail ou do PDF aberto) e cole aqui. Cada compra precisa ter data, nome e valor.</p>
               <textarea id="fx-texto" rows="6" placeholder="12/10 IFOOD *IFOOD 45,90&#10;13/10 POSTO SHELL 180,00&#10;14/10 ATACADAO 312,77"></textarea>
               <button type="button" class="ghost" id="fx-colar-ler">Ler texto colado</button>
             </div>
@@ -410,9 +403,8 @@ body.travado{overflow:hidden}
         </section>
 
         <section id="sec-fat-manual">
-          <details id="fm-det"><summary>Sem arquivo: lançar só o valor</summary>
+          <details id="fm-det"><summary>Fatura sem arquivo</summary>
             <form id="fm-form" class="col" style="gap:10px;margin-top:10px" autocomplete="off">
-              <p class="hint">Crie a fatura só com o total. Depois, se quiser, abra a fatura e adicione o nome de cada compra.</p>
               <label>Cartão<input id="fm-cartao" maxlength="40" list="cartoes" placeholder="Ex.: Nubank" required></label>
               <div class="row">
                 <label>Vencimento<input type="date" id="fm-venc" required></label>
@@ -467,9 +459,9 @@ body.travado{overflow:hidden}
       <label>Vencimento da fatura<input type="date" id="rev-venc"></label>
       <label>Valor da fatura (R$)<input id="rev-valor" inputmode="decimal" class="mono"></label>
     </div>
-    <fieldset class="modo"><legend>No Painel (lançamentos do mês) entra:</legend>
-      <label class="check"><input type="radio" name="rev-modo-g" value="total" checked> <span><b>Só o valor total da fatura</b> <span class="hint">· o detalhe de cada compra fica na aba Faturas</span></span></label>
-      <label class="check"><input type="radio" name="rev-modo-g" value="itens"> <span><b>Cada compra separada</b>, com a categoria de cada uma</span></label>
+    <fieldset class="modo"><legend>No Painel entra</legend>
+      <label class="check"><input type="radio" name="rev-modo-g" value="total" checked> <span>Só o valor total da fatura</span></label>
+      <label class="check"><input type="radio" name="rev-modo-g" value="itens"> <span>Cada compra separada</span></label>
       <label id="w-rev-modo" hidden>Data das compras no Painel<select id="rev-modo"><option value="venc">dia do vencimento</option><option value="compra">dia de cada compra</option></select></label>
     </fieldset>
     <div class="chips" id="rev-cats"></div>
@@ -930,7 +922,7 @@ function resumoRevisao(){const R=REV,sel=R.itens.filter(x=>x.sel),desp=sel.filte
     return `<span class="chip"><i class="dot" style="background:${esc(c.cor)}"></i>${esc(c.nome)} <b class="mono">${fmt(v)}</b></span>`;}).join('');
   if(!R.valorEditado)$('rev-valor').value=valorTx(R.totalPdf||tot);
   const n=R.itens.length,nd=R.itens.filter(x=>x.dup).length;
-  $('rev-info').textContent=`Encontrei ${n} item(ns) no arquivo${nd?`, ${nd} já guardado(s) antes`:''}. Confira as categorias. O que você mudar, eu aprendo para as próximas faturas.`;
+  $('rev-info').textContent=`${n} item(ns)${nd?` · ${nd} já guardado(s) antes`:''}`;
   $('rev-tot').innerHTML=`<b>${sel.length}</b> item(ns) · somam <b class="mono">${fmt(tot)}</b>`+(R.totalPdf?` · total na fatura: <span class="mono">${fmt(R.totalPdf)}</span>`+(Math.abs(R.totalPdf-tot)<0.05?' <span class="pos">✓ confere</span>':''):'');
   const m=modoRev();$('w-rev-modo').hidden=m!=='itens';
   $('rev-ok').disabled=m==='itens'&&!sel.length;
@@ -1030,7 +1022,7 @@ async function relFaturas(){const ini=iso(MES.y,MES.m,1),fim=iso(MES.y,MES.m,fim
    <h3>Lojas que mais apareceram nas faturas</h3>
    <table class="tab tab-est"><thead><tr><th>Estabelecimento</th><th>Categoria</th><th class="n">Vezes</th><th class="n">Total</th></tr></thead><tbody>
    ${Object.values(est).sort((a,b)=>b.t-a.t).slice(0,15).map(e=>`<tr><td>${esc(e.nome)}</td><td>${esc(catPorId(e.cat)?.nome||'–')}</td><td class="n">${e.n}</td><td class="n mono">${fmt(e.t)}</td></tr>`).join('')}</tbody></table>`
-   :'<p class="hint">Essas faturas ainda não têm itens detalhados. Abra a fatura na aba Faturas para ver ou adicionar.</p>'}`;}
+   :''}`;}
 $('b-rel').onclick=abrirRelatorio;
 $('rel-fechar').onclick=()=>{$('rel').hidden=true;document.body.classList.remove('travado');};
 $('rel-imprimir').onclick=()=>window.print();
@@ -1062,9 +1054,9 @@ function renderFaturas(){const fc=$('fl-cartao').value,L=FATURAS.filter(f=>!fc||
   $('fl-lista').innerHTML=L.length?L.map(f=>{const pg=faturaPaga(f);
     return `<li data-id="${f.id}" class="${f.id===FAT_SEL?'sel':''}" tabindex="0" role="button" aria-label="Abrir fatura ${esc(f.cartao)} de ${dBR(f.vencimento)}">
       <b>💳 ${esc(f.cartao||'Cartão')}</b><span class="fv">${fmt(f.total)}</span>
-      <span class="fm">vence ${dBR(f.vencimento)} · ${f.qtd} item(ns) · ${f.modo==='total'?'no Painel: só o total':'no Painel: cada compra'}
+      <span class="fm">vence ${dBR(f.vencimento)} · ${f.qtd} item(ns)
       ${pg===true?'<span class="tag ok">paga</span>':pg===false?'<span class="tag">a pagar</span>':''}</span></li>`;}).join('')
-    :'<li class="vazio" style="display:block;cursor:default">Nenhuma fatura ainda. Adicione a primeira com o arquivo do banco, ou só com o valor.</li>';}
+    :'<li class="vazio" style="display:block;cursor:default">Nenhuma fatura ainda.</li>';}
 $('fl-cartao').addEventListener('change',renderFaturas);
 $('fl-lista').addEventListener('click',e=>{const li=e.target.closest('li[data-id]');if(li)abrirFatura(li.dataset.id);});
 $('fl-lista').addEventListener('keydown',e=>{if(e.key==='Enter'){const li=e.target.closest('li[data-id]');if(li)abrirFatura(li.dataset.id);}});
@@ -1087,9 +1079,8 @@ function renderFatura(){const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
   $('fd-valor').disabled=f.modo==='itens';$('fd-valor').title=f.modo==='itens'?'Nesta fatura o Painel recebe cada compra; o total é a soma dos itens.':'';
   const desp=FAT_ITENS.filter(x=>!x.credito),cred=FAT_ITENS.filter(x=>x.credito);
   const soma=Math.round((desp.reduce((s,x)=>s+x.valor,0)-cred.reduce((s,x)=>s+x.valor,0))*100)/100,falta=Math.round((f.total-soma)*100)/100;
-  $('fd-info').innerHTML=`${f.modo==='total'?'No Painel entra <b>só o valor total</b> desta fatura.':'No Painel entra <b>cada compra</b> desta fatura.'} `+
-    (FAT_ITENS.length?`Itens detalhados somam <b class="mono">${fmt(soma)}</b>`+(Math.abs(falta)>=0.01&&f.modo==='total'?(falta>0?` · <span class="neg">faltam ${fmt(falta)} sem nome</span>`:` · <span class="neg">itens passam do total em ${fmt(-falta)}</span>`):' · <span class="pos">✓ confere com o total</span>')
-      :'Ainda sem itens. Se quiser, adicione abaixo o nome de cada compra.');
+  $('fd-info').innerHTML=(FAT_ITENS.length?`Itens somam <b class="mono">${fmt(soma)}</b>`+(Math.abs(falta)>=0.01&&f.modo==='total'?(falta>0?` · <span class="neg">faltam ${fmt(falta)} sem nome</span>`:` · <span class="neg">itens passam do total em ${fmt(-falta)}</span>`):' · <span class="pos">✓ confere</span>')
+      :'');
   // por categoria
   const por={};desp.forEach(x=>{const k=x.categoria_id||'_';por[k]=(por[k]||0)+x.valor;});
   const tot=desp.reduce((s,x)=>s+x.valor,0),max=Math.max(1,...Object.values(por));
@@ -1105,7 +1096,7 @@ function renderItens(){const q=norm($('fd-q').value),fc=$('fd-q').dataset.cat||'
     <td><select class="fi-cat" aria-label="Categoria de ${esc(x.descricao)}"><option value="">Sem categoria</option>${opcoesCat(x.credito?'receita':'despesa',x.categoria_id)}</select></td>
     <td class="n mono ${x.credito?'pos':''}">${x.credito?'+ ':''}${fmt(x.valor)}</td>
     <td><button type="button" class="del" data-fidel="${x.id}" aria-label="Excluir item ${esc(x.descricao)}" title="Excluir item">🗑</button></td></tr>`).join('')
-    ||`<tr><td colspan="5" class="hint">${FAT_ITENS.length?'Nada com esse filtro.':'Nenhum item. Use o campo abaixo para dar nome às compras, se quiser.'}</td></tr>`;
+    ||`<tr><td colspan="5" class="hint">${FAT_ITENS.length?'Nada com esse filtro.':'Nenhum item.'}</td></tr>`;
   if(fc){const c=catPorId(fc);$('fd-msg').className='msg ok';$('fd-msg').hidden=false;$('fd-msg').innerHTML=`Mostrando só ${esc(c?c.nome:'sem categoria')}. <button class="small ghost" type="button" id="fd-limpa">Mostrar tudo</button>`;}
   else if($('fd-msg').querySelector('#fd-limpa'))msg('fd-msg');}
 $('fd-cats').addEventListener('click',e=>{const li=e.target.closest('li[data-fcat]');if(!li)return;$('fd-q').dataset.cat=li.dataset.fcat;renderItens();});
@@ -1300,7 +1291,7 @@ async function lerPlanilha(f){if(!XLSXLIB){await new Promise((ok,err)=>{const s=
   return [];}
 
 // ===================== atualização automática =====================
-const VERSAO='20261111-213828';
+const VERSAO='20261111-220401';
 async function checarVersao(){try{const r=await fetch(location.pathname+'?nv='+Date.now(),{cache:'no-store'});const t=await r.text();
   const m=t.match(/const VERSAO='([^']+)'/);if(m&&m[1]!==VERSAO){let ja='';try{ja=sessionStorage.getItem('gastos_atualizou');}catch(e){}if(ja===m[1])return;
     try{sessionStorage.setItem('gastos_atualizou',m[1]);}catch(e){}toast('Nova versão do app. Atualizando…');setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(m[1])),1200);}}catch(e){}}

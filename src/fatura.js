@@ -167,7 +167,7 @@ function resumoRevisao(){const R=REV,sel=R.itens.filter(x=>x.sel),desp=sel.filte
     return `<span class="chip"><i class="dot" style="background:${esc(c.cor)}"></i>${esc(c.nome)} <b class="mono">${fmt(v)}</b></span>`;}).join('');
   if(!R.valorEditado)$('rev-valor').value=valorTx(R.totalPdf||tot);
   const n=R.itens.length,nd=R.itens.filter(x=>x.dup).length;
-  $('rev-info').textContent=`Encontrei ${n} item(ns) no arquivo${nd?`, ${nd} já guardado(s) antes`:''}. Confira as categorias. O que você mudar, eu aprendo para as próximas faturas.`;
+  $('rev-info').textContent=`${n} item(ns)${nd?` · ${nd} já guardado(s) antes`:''}`;
   $('rev-tot').innerHTML=`<b>${sel.length}</b> item(ns) · somam <b class="mono">${fmt(tot)}</b>`+(R.totalPdf?` · total na fatura: <span class="mono">${fmt(R.totalPdf)}</span>`+(Math.abs(R.totalPdf-tot)<0.05?' <span class="pos">✓ confere</span>':''):'');
   const m=modoRev();$('w-rev-modo').hidden=m!=='itens';
   $('rev-ok').disabled=m==='itens'&&!sel.length;
@@ -267,7 +267,7 @@ async function relFaturas(){const ini=iso(MES.y,MES.m,1),fim=iso(MES.y,MES.m,fim
    <h3>Lojas que mais apareceram nas faturas</h3>
    <table class="tab tab-est"><thead><tr><th>Estabelecimento</th><th>Categoria</th><th class="n">Vezes</th><th class="n">Total</th></tr></thead><tbody>
    ${Object.values(est).sort((a,b)=>b.t-a.t).slice(0,15).map(e=>`<tr><td>${esc(e.nome)}</td><td>${esc(catPorId(e.cat)?.nome||'–')}</td><td class="n">${e.n}</td><td class="n mono">${fmt(e.t)}</td></tr>`).join('')}</tbody></table>`
-   :'<p class="hint">Essas faturas ainda não têm itens detalhados. Abra a fatura na aba Faturas para ver ou adicionar.</p>'}`;}
+   :''}`;}
 $('b-rel').onclick=abrirRelatorio;
 $('rel-fechar').onclick=()=>{$('rel').hidden=true;document.body.classList.remove('travado');};
 $('rel-imprimir').onclick=()=>window.print();

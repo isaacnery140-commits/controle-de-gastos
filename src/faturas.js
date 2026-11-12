@@ -23,9 +23,9 @@ function renderFaturas(){const fc=$('fl-cartao').value,L=FATURAS.filter(f=>!fc||
   $('fl-lista').innerHTML=L.length?L.map(f=>{const pg=faturaPaga(f);
     return `<li data-id="${f.id}" class="${f.id===FAT_SEL?'sel':''}" tabindex="0" role="button" aria-label="Abrir fatura ${esc(f.cartao)} de ${dBR(f.vencimento)}">
       <b>💳 ${esc(f.cartao||'Cartão')}</b><span class="fv">${fmt(f.total)}</span>
-      <span class="fm">vence ${dBR(f.vencimento)} · ${f.qtd} item(ns) · ${f.modo==='total'?'no Painel: só o total':'no Painel: cada compra'}
+      <span class="fm">vence ${dBR(f.vencimento)} · ${f.qtd} item(ns)
       ${pg===true?'<span class="tag ok">paga</span>':pg===false?'<span class="tag">a pagar</span>':''}</span></li>`;}).join('')
-    :'<li class="vazio" style="display:block;cursor:default">Nenhuma fatura ainda. Adicione a primeira com o arquivo do banco, ou só com o valor.</li>';}
+    :'<li class="vazio" style="display:block;cursor:default">Nenhuma fatura ainda.</li>';}
 $('fl-cartao').addEventListener('change',renderFaturas);
 $('fl-lista').addEventListener('click',e=>{const li=e.target.closest('li[data-id]');if(li)abrirFatura(li.dataset.id);});
 $('fl-lista').addEventListener('keydown',e=>{if(e.key==='Enter'){const li=e.target.closest('li[data-id]');if(li)abrirFatura(li.dataset.id);}});
@@ -48,9 +48,8 @@ function renderFatura(){const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
   $('fd-valor').disabled=f.modo==='itens';$('fd-valor').title=f.modo==='itens'?'Nesta fatura o Painel recebe cada compra; o total é a soma dos itens.':'';
   const desp=FAT_ITENS.filter(x=>!x.credito),cred=FAT_ITENS.filter(x=>x.credito);
   const soma=Math.round((desp.reduce((s,x)=>s+x.valor,0)-cred.reduce((s,x)=>s+x.valor,0))*100)/100,falta=Math.round((f.total-soma)*100)/100;
-  $('fd-info').innerHTML=`${f.modo==='total'?'No Painel entra <b>só o valor total</b> desta fatura.':'No Painel entra <b>cada compra</b> desta fatura.'} `+
-    (FAT_ITENS.length?`Itens detalhados somam <b class="mono">${fmt(soma)}</b>`+(Math.abs(falta)>=0.01&&f.modo==='total'?(falta>0?` · <span class="neg">faltam ${fmt(falta)} sem nome</span>`:` · <span class="neg">itens passam do total em ${fmt(-falta)}</span>`):' · <span class="pos">✓ confere com o total</span>')
-      :'Ainda sem itens. Se quiser, adicione abaixo o nome de cada compra.');
+  $('fd-info').innerHTML=(FAT_ITENS.length?`Itens somam <b class="mono">${fmt(soma)}</b>`+(Math.abs(falta)>=0.01&&f.modo==='total'?(falta>0?` · <span class="neg">faltam ${fmt(falta)} sem nome</span>`:` · <span class="neg">itens passam do total em ${fmt(-falta)}</span>`):' · <span class="pos">✓ confere</span>')
+      :'');
   // por categoria
   const por={};desp.forEach(x=>{const k=x.categoria_id||'_';por[k]=(por[k]||0)+x.valor;});
   const tot=desp.reduce((s,x)=>s+x.valor,0),max=Math.max(1,...Object.values(por));
@@ -66,7 +65,7 @@ function renderItens(){const q=norm($('fd-q').value),fc=$('fd-q').dataset.cat||'
     <td><select class="fi-cat" aria-label="Categoria de ${esc(x.descricao)}"><option value="">Sem categoria</option>${opcoesCat(x.credito?'receita':'despesa',x.categoria_id)}</select></td>
     <td class="n mono ${x.credito?'pos':''}">${x.credito?'+ ':''}${fmt(x.valor)}</td>
     <td><button type="button" class="del" data-fidel="${x.id}" aria-label="Excluir item ${esc(x.descricao)}" title="Excluir item">🗑</button></td></tr>`).join('')
-    ||`<tr><td colspan="5" class="hint">${FAT_ITENS.length?'Nada com esse filtro.':'Nenhum item. Use o campo abaixo para dar nome às compras, se quiser.'}</td></tr>`;
+    ||`<tr><td colspan="5" class="hint">${FAT_ITENS.length?'Nada com esse filtro.':'Nenhum item.'}</td></tr>`;
   if(fc){const c=catPorId(fc);$('fd-msg').className='msg ok';$('fd-msg').hidden=false;$('fd-msg').innerHTML=`Mostrando só ${esc(c?c.nome:'sem categoria')}. <button class="small ghost" type="button" id="fd-limpa">Mostrar tudo</button>`;}
   else if($('fd-msg').querySelector('#fd-limpa'))msg('fd-msg');}
 $('fd-cats').addEventListener('click',e=>{const li=e.target.closest('li[data-fcat]');if(!li)return;$('fd-q').dataset.cat=li.dataset.fcat;renderItens();});
