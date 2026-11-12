@@ -657,7 +657,7 @@ function renderResumo(){const L=doMes(),ant=doMes(shiftMes(MES,-1));
   $('r-rec').textContent=fmt(rec);$('r-desp').textContent=fmt(desp);
   $('r-saldo').textContent=fmt(saldo);$('r-saldo').className='v '+(saldo<0?'neg':'pos');
   $('r-apagar').textContent=fmt(apagar);$('r-apagar').className='v'+(apagar>0?' neg':'');
-  const comp=(a,b)=>{if(!b)return 'sem dados do mês anterior';const p=Math.round((a-b)/b*100);return (p>0?'+':'')+p+'% vs mês anterior';};
+  const comp=(a,b)=>{if(!b)return '';const p=Math.round((a-b)/b*100);return (p>0?'+':'')+p+'% vs mês anterior';};
   $('r-rec-d').textContent=comp(rec,soma(ant,'receita'));$('r-desp-d').textContent=comp(desp,soma(ant,'despesa'));
   $('r-saldo-d').textContent=rec?Math.round(saldo/rec*100)+'% da receita':'';
   const np=L.filter(l=>l.tipo==='despesa'&&!l.pago).length;
@@ -1291,7 +1291,7 @@ async function lerPlanilha(f){if(!XLSXLIB){await new Promise((ok,err)=>{const s=
   return [];}
 
 // ===================== atualização automática =====================
-const VERSAO='20261111-220401';
+const VERSAO='20261111-220548';
 async function checarVersao(){try{const r=await fetch(location.pathname+'?nv='+Date.now(),{cache:'no-store'});const t=await r.text();
   const m=t.match(/const VERSAO='([^']+)'/);if(m&&m[1]!==VERSAO){let ja='';try{ja=sessionStorage.getItem('gastos_atualizou');}catch(e){}if(ja===m[1])return;
     try{sessionStorage.setItem('gastos_atualizou',m[1]);}catch(e){}toast('Nova versão do app. Atualizando…');setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(m[1])),1200);}}catch(e){}}
