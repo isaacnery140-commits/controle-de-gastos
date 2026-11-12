@@ -44,7 +44,8 @@ h1 span{color:var(--gold)}
 .sub{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 .tools{display:flex;gap:8px}
 @media (max-width:620px){
-  header{display:grid;grid-template-columns:1fr auto;grid-template-areas:"tit tools" "mes mes";gap:10px}
+  header{display:grid;grid-template-columns:1fr auto;grid-template-areas:"tit tools" "abas abas" "mes mes";gap:10px}
+  .abas{grid-area:abas}.abas button{flex:1}
   .tit{grid-area:tit;min-width:0}.tools{grid-area:tools}.mes{grid-area:mes;justify-content:space-between}
   .mes output{flex:1;min-width:0}
 }
@@ -53,7 +54,8 @@ h1 span{color:var(--gold)}
 .grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;align-items:start}
 .col{display:flex;flex-direction:column;gap:18px;min-width:0}
 @media (max-width:860px){.grid{display:flex;flex-direction:column;align-items:stretch}.grid>.col{display:contents}
-  #sec-rapido{order:0}#sec-resumo{order:1}#sec-form{order:2}#sec-cat{order:3}#sec-fatura{order:4}#sec-lista{order:5}#sec-meses{order:6}#sec-cats{order:7}}
+  #sec-rapido{order:0}#sec-resumo{order:1}#sec-form{order:2}#sec-cat{order:3}#sec-atalho-fat{order:4}#sec-lista{order:5}#sec-meses{order:6}#sec-cats{order:7}
+  #sec-fat-lista{order:1}#sec-fat-det{order:2}#sec-fatura{order:3}#sec-fat-manual{order:4}}
 section{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 h2{font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin:0;color:var(--muted)}
 .sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
@@ -136,6 +138,29 @@ details>summary{cursor:pointer;font-family:var(--f-display);font-weight:700;font
 details>summary::-webkit-details-marker{display:none}
 details>summary::after{content:" +";color:var(--accent)}
 details[open]>summary::after{content:" −"}
+/* abas e faturas */
+.abas{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px}
+.abas button{background:transparent;border:0;color:var(--muted);border-radius:999px;padding:6px 14px;min-height:34px}
+.abas button[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
+.fats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.fats li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:9px 12px;background:var(--bg);cursor:pointer}
+.fats li:hover,.fats li.sel{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.fats li b{font-family:var(--f-display)}
+.fats .fv{font-family:var(--f-mono);font-weight:600;text-align:right}
+.fats .fm{grid-column:1 / -1;font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tab-wrap{overflow-x:auto;margin:0 -4px}
+.fd-tab select{min-height:32px;padding:3px 6px;font-size:13px;max-width:190px}
+.fd-tab td{vertical-align:middle}
+.fd-tab .del{background:transparent;border:1px solid transparent;color:var(--muted);min-height:32px;min-width:32px;padding:0;font-weight:400}
+.fd-tab .del:hover{color:var(--err);border-color:var(--err)}
+.fd-add{display:grid;grid-template-columns:140px 1fr 110px auto;gap:8px}
+@media (max-width:620px){.fd-add{grid-template-columns:1fr 1fr}.fd-add #fd-a-desc{grid-column:1 / -1;order:-1}
+  .fd-tab th:nth-child(1),.fd-tab td:nth-child(1){display:none}.fd-tab select{max-width:130px}}
+fieldset.modo{border:1px solid var(--line);border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;gap:6px;margin:0}
+fieldset.modo legend{font-size:13px;color:var(--muted);padding:0 4px}
+fieldset.modo .check{align-items:flex-start}
+fieldset.modo input[type=radio]{width:18px;height:18px;min-height:0;margin-top:2px;accent-color:var(--accent)}
 /* lançar falando */
 .rp{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
 .mic{width:52px;height:52px;border-radius:50%;padding:0;font-size:24px;display:grid;place-items:center;background:var(--bg);border:2px solid var(--accent)}
@@ -238,6 +263,10 @@ body.travado{overflow:hidden}
         <h1>Controle de <span>Gastos</span></h1>
         <div class="sub" id="u-email"></div>
       </div>
+      <nav class="abas" aria-label="Seções">
+        <button type="button" data-aba="painel" aria-current="page">Painel</button>
+        <button type="button" data-aba="faturas">💳 Faturas</button>
+      </nav>
       <div class="mes">
         <button class="icon" id="m-ant" aria-label="Mês anterior">‹</button>
         <output id="m-nome"></output>
@@ -250,7 +279,7 @@ body.travado{overflow:hidden}
       </div>
     </header>
 
-    <div class="grid">
+    <div class="grid" id="pg-painel">
       <div class="col">
         <section id="sec-rapido">
           <h2>Lançar falando</h2>
@@ -294,24 +323,10 @@ body.travado{overflow:hidden}
           </form>
         </section>
 
-        <section id="sec-fatura">
-          <h2>Importar fatura do cartão</h2>
-          <p class="hint">Envie o PDF da fatura (ou o CSV / OFX que o banco exporta). Eu leio cada compra, separo por categoria e você confere antes de salvar. O arquivo é lido no seu aparelho, não é enviado para lugar nenhum.</p>
-          <label>Arquivo da fatura (PDF, planilha, CSV ou OFX)<input type="file" id="fx-arq"></label>
-          <span class="hint" id="fx-nome"></span>
-          <p class="hint so-pc">No computador: clique em "Escolher arquivo" e abra a pasta <b>Downloads</b>, ou arraste o arquivo para dentro deste quadro.</p>
-          <p class="hint so-cel">No celular: o PDF baixado fica em <b>Arquivos → Downloads</b> (iPhone) ou <b>Downloads</b> (Android). Se a fatura estiver no app do banco, use <b>Compartilhar → Salvar em Arquivos</b> antes.</p>
-          <label id="w-senha" hidden>Senha do PDF<input type="password" id="fx-senha" autocomplete="off" placeholder="Ex.: primeiros dígitos do CPF"></label>
-          <div class="actions"><button type="button" id="fx-ler">Ler fatura</button><button type="button" class="ghost small" id="fx-tem-senha">O PDF tem senha</button></div>
-          <p id="fx-msg" class="msg" hidden></p>
-          <details id="fx-colar"><summary>Colar o texto da fatura</summary>
-            <div class="col" style="gap:8px;margin-top:8px">
-              <p class="hint">Copie o texto da fatura (do bloco de notas, do e-mail ou do PDF aberto) e cole aqui. Cada compra precisa ter data, nome e valor.</p>
-              <textarea id="fx-texto" rows="6" placeholder="12/10 IFOOD *IFOOD 45,90&#10;13/10 POSTO SHELL 180,00&#10;14/10 ATACADAO 312,77"></textarea>
-              <button type="button" class="ghost" id="fx-colar-ler">Ler texto colado</button>
-            </div>
-          </details>
-          <div id="fx-hist"></div>
+        <section id="sec-atalho-fat">
+          <h2>Fatura do cartão</h2>
+          <p class="hint">No Painel entra só o valor da fatura. O detalhe de cada compra fica na aba Faturas.</p>
+          <div class="actions"><button type="button" class="ghost" data-ir="faturas">💳 Abrir Faturas</button></div>
         </section>
 
         <section id="sec-cats">
@@ -369,6 +384,73 @@ body.travado{overflow:hidden}
         </section>
       </div>
     </div>
+    <div class="grid" id="pg-faturas" hidden>
+      <div class="col">
+        <section id="sec-fatura">
+          <h2>Adicionar fatura com o arquivo</h2>
+          <p class="hint">Envie o PDF da fatura (ou a planilha / CSV / OFX do banco). Eu leio cada compra e separo por categoria. Você confere e escolhe se no Painel entra <b>só o valor total</b> ou <b>cada compra</b>. O arquivo é lido no seu aparelho.</p>
+          <label>Cartão<input id="fx-cartao" maxlength="40" list="cartoes" placeholder="Ex.: Nubank, Itaú, Inter"></label>
+          <datalist id="cartoes"></datalist>
+          <label>Arquivo da fatura (PDF, planilha, CSV ou OFX)<input type="file" id="fx-arq"></label>
+          <span class="hint" id="fx-nome"></span>
+          <p class="hint so-pc">No computador: clique em "Escolher arquivo" e abra a pasta <b>Downloads</b>, ou arraste o arquivo para dentro deste quadro.</p>
+          <p class="hint so-cel">No celular: o PDF baixado fica em <b>Arquivos → Downloads</b> (iPhone) ou <b>Downloads</b> (Android). Se a fatura estiver no app do banco, use <b>Compartilhar → Salvar em Arquivos</b> antes.</p>
+          <label id="w-senha" hidden>Senha do PDF<input type="password" id="fx-senha" autocomplete="off" placeholder="Ex.: primeiros dígitos do CPF"></label>
+          <div class="actions"><button type="button" id="fx-ler">Ler fatura</button><button type="button" class="ghost small" id="fx-tem-senha">O PDF tem senha</button></div>
+          <p id="fx-msg" class="msg" hidden></p>
+          <details id="fx-colar"><summary>Colar o texto da fatura</summary>
+            <div class="col" style="gap:8px;margin-top:8px">
+              <p class="hint">Copie o texto da fatura (do bloco de notas, do e-mail ou do PDF aberto) e cole aqui. Cada compra precisa ter data, nome e valor.</p>
+              <textarea id="fx-texto" rows="6" placeholder="12/10 IFOOD *IFOOD 45,90&#10;13/10 POSTO SHELL 180,00&#10;14/10 ATACADAO 312,77"></textarea>
+              <button type="button" class="ghost" id="fx-colar-ler">Ler texto colado</button>
+            </div>
+          </details>
+        </section>
+
+        <section id="sec-fat-manual">
+          <details id="fm-det"><summary>Sem arquivo: lançar só o valor</summary>
+            <form id="fm-form" class="col" style="gap:10px;margin-top:10px" autocomplete="off">
+              <p class="hint">Crie a fatura só com o total. Depois, se quiser, abra a fatura e adicione o nome de cada compra.</p>
+              <label>Cartão<input id="fm-cartao" maxlength="40" list="cartoes" placeholder="Ex.: Nubank" required></label>
+              <div class="row">
+                <label>Vencimento<input type="date" id="fm-venc" required></label>
+                <label>Valor da fatura (R$)<input id="fm-valor" inputmode="decimal" placeholder="0,00" class="mono" required></label>
+              </div>
+              <label class="check"><input type="checkbox" id="fm-pago"> Já paguei esta fatura</label>
+              <button type="submit">Salvar fatura</button>
+              <p id="fm-msg" class="msg" hidden></p>
+            </form>
+          </details>
+        </section>
+      </div>
+      <div class="col">
+        <section id="sec-fat-lista">
+          <div class="sec-head"><h2>Suas faturas</h2><select id="fl-cartao" aria-label="Filtrar por cartão" style="width:auto;min-height:34px;padding:4px 8px"><option value="">Todos os cartões</option></select></div>
+          <ul class="fats" id="fl-lista"></ul>
+        </section>
+        <section id="sec-fat-det" hidden>
+          <div class="sec-head"><h2 id="fd-tit">Fatura</h2><div class="actions"><button class="ghost small" id="fd-csv" type="button">Planilha</button><button class="small danger" id="fd-excluir" type="button">Excluir fatura</button></div></div>
+          <div class="row">
+            <label>Valor da fatura (R$)<input id="fd-valor" inputmode="decimal" class="mono"></label>
+            <label>Vencimento<input type="date" id="fd-venc"></label>
+          </div>
+          <label class="check"><input type="checkbox" id="fd-pago"> <span>Fatura paga</span></label>
+          <p class="hint" id="fd-info"></p>
+          <div id="fd-sem-painel" class="msg warn" hidden>Esta fatura não está no Painel. <button class="small" id="fd-relancar" type="button">Lançar o valor no Painel</button></div>
+          <h2>Por categoria</h2>
+          <ul class="bars" id="fd-cats"></ul>
+          <div class="sec-head"><h2>Itens da fatura</h2><input id="fd-q" type="search" placeholder="Buscar item" style="width:auto;flex:1;max-width:260px;min-height:34px;padding:4px 8px"></div>
+          <div class="tab-wrap"><table class="tab fd-tab"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="n">Valor</th><th></th></tr></thead><tbody id="fd-itens"></tbody></table></div>
+          <form id="fd-add" class="fd-add" autocomplete="off">
+            <input type="date" id="fd-a-data" aria-label="Data da compra">
+            <input id="fd-a-desc" maxlength="120" placeholder="Nome da compra (ex.: iFood)" required aria-label="Descrição">
+            <input id="fd-a-valor" inputmode="decimal" placeholder="Valor" class="mono" required aria-label="Valor">
+            <button class="small" type="submit">+ Item</button>
+          </form>
+          <p id="fd-msg" class="msg" hidden></p>
+        </section>
+      </div>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -379,9 +461,15 @@ body.travado{overflow:hidden}
     <div class="sec-head"><h2 id="rev-tit">Conferir fatura</h2><button class="icon" id="rev-fechar" aria-label="Fechar">✕</button></div>
     <p class="hint" id="rev-info"></p>
     <div class="row">
+      <label>Cartão<input id="rev-cartao" maxlength="40" list="cartoes" placeholder="Ex.: Nubank"></label>
       <label>Vencimento da fatura<input type="date" id="rev-venc"></label>
-      <label>Lançar no mês<select id="rev-modo"><option value="venc">do vencimento (recomendado)</option><option value="compra">de cada compra</option></select></label>
+      <label>Valor da fatura (R$)<input id="rev-valor" inputmode="decimal" class="mono"></label>
     </div>
+    <fieldset class="modo"><legend>No Painel (lançamentos do mês) entra:</legend>
+      <label class="check"><input type="radio" name="rev-modo-g" value="total" checked> <span><b>Só o valor total da fatura</b> <span class="hint">· o detalhe de cada compra fica na aba Faturas</span></span></label>
+      <label class="check"><input type="radio" name="rev-modo-g" value="itens"> <span><b>Cada compra separada</b>, com a categoria de cada uma</span></label>
+      <label id="w-rev-modo" hidden>Data das compras no Painel<select id="rev-modo"><option value="venc">dia do vencimento</option><option value="compra">dia de cada compra</option></select></label>
+    </fieldset>
     <div class="chips" id="rev-cats"></div>
     <div class="actions"><input id="rev-q" type="search" placeholder="Filtrar por nome" style="flex:1;min-width:140px"><button class="ghost small" id="rev-todos" type="button">Marcar todas</button><button class="ghost small" id="rev-nenhum" type="button">Desmarcar todas</button></div>
     <ul class="rev-lista" id="rev-lista"></ul>
@@ -411,7 +499,7 @@ const FORMAS={pix:'Pix',debito:'Débito',credito:'Crédito',dinheiro:'Dinheiro',
 const PADRAO={
   despesa:[['iFood / Delivery','#d32f2f','🛵'],['Mercado (comida)','#2e7d32','🛒'],['Restaurantes','#e07a1f','🍔'],['Casa (itens)','#5d4037','🏠'],
            ['Combustível','#f9a825','⛽'],['Transporte','#1f7fae','🚗'],['Compras','#8d6e63','🛍'],['Contas','#6a4fb3','💡'],['Moradia','#3d42a0','🏢'],
-           ['Saúde','#c2185b','✚'],['Assinaturas','#7b1fa2','▶'],['Educação','#00897b','✎'],['Lazer','#a8802f','★'],['Tarifas do cartão','#455a64','%'],['Diversos','#607d8b','•']],
+           ['Saúde','#c2185b','✚'],['Assinaturas','#7b1fa2','▶'],['Educação','#00897b','✎'],['Lazer','#a8802f','★'],['Tarifas do cartão','#455a64','%'],['Fatura do cartão','#283593','💳'],['Diversos','#607d8b','•']],
   receita:[['Salário','#2e7d32','$'],['Extra','#00897b','+'],['Vendas','#a8802f','↗'],['Outros','#607d8b','•']]
 };
 
@@ -485,7 +573,8 @@ sb.auth.onAuthStateChange(async(evento,sessao)=>{
 });
 
 // ---- carga de dados
-async function iniciar(){await carregarCats();await carregarRegras();montarParcelas();novoForm();await carregarMes();carregarImportacoes();}
+async function iniciar(){await carregarCats();await carregarRegras();montarParcelas();novoForm();await carregarMes();await carregarFaturas();
+  irPara(location.hash==='#faturas'?'faturas':'painel',true);}
 
 async function carregarCats(){
   let {data,error}=await sb.from('gastos_categorias').select('*').order('nome');
@@ -630,11 +719,12 @@ function renderLista(){const L=filtrados(),ul=$('lista');
     const c=catPorId(l.categoria_id)||{nome:'Sem categoria',cor:'#8a948e',icone:'•'},rec=l.tipo==='receita';
     h+=`<li class="item" data-id="${l.id}" tabindex="0" role="button" aria-label="Editar ${esc(l.descricao||c.nome)}">
       <span class="ic" style="background:${esc(c.cor)}">${esc(c.icone)}</span>
-      <span class="tx"><b>${esc(l.descricao||c.nome)}</b><span>${esc(c.nome)} · ${FORMAS[l.forma]||''} ${!l.pago?`<span class="tag">${rec?'a receber':'a pagar'}</span>`:''}</span></span>
+      <span class="tx"><b>${esc(l.descricao||c.nome)}</b><span>${esc(c.nome)}${l.origem==='fatura_total'?'':' · '+(FORMAS[l.forma]||'')} ${!l.pago?`<span class="tag">${rec?'a receber':'a pagar'}</span>`:''}${l.origem==='fatura_total'?' <span class="tag info">ver itens ›</span>':''}</span></span>
       <span class="vv ${rec?'pos':'neg'}">${rec?'+':'−'} ${fmt(l.valor)}</span>
       <button type="button" class="del" data-del="${l.id}" aria-label="Excluir ${esc(l.descricao||c.nome)}" title="Excluir">🗑</button></li>`;});
   ul.innerHTML=h;}
-$('lista').addEventListener('click',e=>{const d=e.target.closest('[data-del]');if(d){e.stopPropagation();excluirLanc(d.dataset.del);return;}const it=e.target.closest('.item');if(it)editar(LANCS.find(l=>l.id===it.dataset.id));});
+$('lista').addEventListener('click',e=>{const d=e.target.closest('[data-del]');if(d){e.stopPropagation();excluirLanc(d.dataset.del);return;}const it=e.target.closest('.item');
+  if(it){const l=LANCS.find(x=>x.id===it.dataset.id);if(l&&l.origem==='fatura_total'&&l.importacao_id){abrirFatura(l.importacao_id);return;}}if(it)editar(LANCS.find(l=>l.id===it.dataset.id));});
 $('lista').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('[data-del]')){const it=e.target.closest('.item');if(it)editar(LANCS.find(l=>l.id===it.dataset.id));}});
 ['q','q-cat','q-tipo'].forEach(id=>$(id).addEventListener('input',renderLista));
 
@@ -795,6 +885,8 @@ $('fx-ler').onclick=async()=>{msg('fx-msg');const f=$('fx-arq').files[0];if(!f)r
   }catch(e){msg('fx-msg',erroPT(e));}
   finally{b.disabled=false;b.textContent='Ler fatura';}};
 
+function adivinharCartao(arquivo){const n=norm(arquivo);const bancos=['NUBANK','ITAU','INTER','BRADESCO','SANTANDER','CAIXA','BANCO DO BRASIL','C6','PICPAY','MERCADO PAGO','NEON','PAN','PORTO','XP','BTG','SICOOB','SICREDI','NEXT','WILL','DIGIO','AMERICANAS','CARREFOUR','RIACHUELO','RENNER'];
+  const b=bancos.find(x=>n.includes(x));return b?bonito(b):'';}
 async function abrirRevisao(arquivo,r){
   const venc=r.venc||(()=>{const d=new Date();return iso(d.getFullYear(),d.getMonth(),Math.min(10,d.getDate()));})();
   const itens=r.itens.map((it,i)=>{const p=it.desc.toUpperCase().match(RX_PARC);const parc=p&&+p[1]>=1&&+p[1]<=+p[2]&&+p[2]>=2&&+p[2]<=48?[+p[1],+p[2]]:null;
@@ -803,15 +895,17 @@ async function abrirRevisao(arquivo,r){
   // parcelas repetidas da mesma compra (seção "próximas faturas"): fica só a de menor número
   const grupos={};itens.filter(x=>x.parc).forEach(x=>{const k=chave(x.desc)+'|'+x.valor+'|'+x.parc[1];(grupos[k]=grupos[k]||[]).push(x);});
   Object.values(grupos).forEach(g=>{if(g.length>1){g.sort((a,b)=>a.parc[0]-b.parc[0]);g.slice(1).forEach(x=>{x.sel=false;x.futura=true;});}});
-  REV={arquivo,itens,totalPdf:r.total,detectouVenc:!!r.venc};
+  REV={arquivo,itens,totalPdf:r.total,detectouVenc:!!r.venc,valorEditado:false};
   $('rev-venc').value=venc;$('rev-modo').value='venc';$('rev-q').value='';
+  $('rev-cartao').value=$('fx-cartao').value.trim()||adivinharCartao(arquivo)||(FATURAS[0]?.cartao||'');
+  document.querySelector('input[name=rev-modo-g][value=total]').checked=true;$('w-rev-modo').hidden=true;
   await marcarDuplicados();renderRevisao();$('rev').hidden=false;document.body.classList.add('travado');}
 async function marcarDuplicados(){if(!REV)return;const venc=$('rev-venc').value;REV.itens.forEach(x=>{x.dc=dataCompra(x,venc);x.dup=false;});
   const ds=REV.itens.map(x=>x.dc).sort();if(!ds.length)return;
-  const {data}=await sb.from('gastos_lancamentos').select('data_compra,valor,descricao').eq('origem','fatura').gte('data_compra',ds[0]).lte('data_compra',ds[ds.length-1]);
+  const {data}=await sb.from('gastos_fatura_itens').select('data_compra,valor,descricao').gte('data_compra',ds[0]).lte('data_compra',ds[ds.length-1]);
   const cont={};(data||[]).forEach(l=>{const k=l.data_compra+'|'+Number(l.valor).toFixed(2)+'|'+chave(l.descricao);cont[k]=(cont[k]||0)+1;});
   REV.itens.forEach(x=>{const k=x.dc+'|'+x.valor.toFixed(2)+'|'+chave(x.desc);if(cont[k]>0){cont[k]--;x.dup=true;x.sel=false;}});}
-function opcoesCat(tipo,sel){return CATS.filter(c=>c.tipo===tipo).map(c=>`<option value="${c.id}"${c.id===sel?' selected':''}>${esc(c.icone+'  '+c.nome)}</option>`).join('');}
+function opcoesCat(tipo,sel){return CATS.filter(c=>c.tipo===tipo&&c.nome!=='Fatura do cartão').map(c=>`<option value="${c.id}"${c.id===sel?' selected':''}>${esc(c.icone+'  '+c.nome)}</option>`).join('');}
 function renderRevisao(){const R=REV,q=norm($('rev-q').value);
   const vis=R.itens.filter(x=>!q||norm(x.desc2).includes(q));
   $('rev-tit').textContent='Conferir fatura · '+R.arquivo;
@@ -821,20 +915,26 @@ function renderRevisao(){const R=REV,q=norm($('rev-q').value);
       x.fonte==='padrao'&&!x.credito?'<span class="tag">confira a categoria</span>':''].join('');
     const [y,m,d]=x.dc.split('-');
     return `<li class="rv${x.sel?'':' off'}" data-i="${x.i}">
-      <input type="checkbox" ${x.sel?'checked':''} aria-label="Importar ${esc(x.desc2)}">
+      <input type="checkbox" ${x.sel?'checked':''} aria-label="Incluir ${esc(x.desc2)}">
       <div class="rv-tx"><input class="rv-desc" value="${esc(x.desc2)}" maxlength="120" aria-label="Descrição"><span class="rv-meta">${d}/${m}/${y} ${badges}</span></div>
       <span class="rv-v ${x.credito?'pos':'neg'}">${x.credito?'+':'−'} ${fmt(x.valor)}</span>
       <select class="rv-cat" aria-label="Categoria">${opcoesCat(tipo,x.cat)}</select></li>`;}).join('')||'<li class="vazio">Nada com esse filtro.</li>';
   resumoRevisao();}
-function resumoRevisao(){const R=REV,sel=R.itens.filter(x=>x.sel),desp=sel.filter(x=>!x.credito),cred=sel.filter(x=>x.credito);
-  const tot=desp.reduce((s,x)=>s+x.valor,0)-cred.reduce((s,x)=>s+x.valor,0);
+const somaSel=()=>{const sel=REV.itens.filter(x=>x.sel);return Math.round((sel.filter(x=>!x.credito).reduce((s,x)=>s+x.valor,0)-sel.filter(x=>x.credito).reduce((s,x)=>s+x.valor,0))*100)/100;};
+const modoRev=()=>document.querySelector('input[name=rev-modo-g]:checked').value;
+function resumoRevisao(){const R=REV,sel=R.itens.filter(x=>x.sel),desp=sel.filter(x=>!x.credito);const tot=somaSel();
   const por={};desp.forEach(x=>por[x.cat]=(por[x.cat]||0)+x.valor);
   $('rev-cats').innerHTML=Object.entries(por).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const c=catPorId(k)||{nome:'?',cor:'#888'};
     return `<span class="chip"><i class="dot" style="background:${esc(c.cor)}"></i>${esc(c.nome)} <b class="mono">${fmt(v)}</b></span>`;}).join('');
+  if(!R.valorEditado)$('rev-valor').value=valorTx(R.totalPdf||tot);
   const n=R.itens.length,nd=R.itens.filter(x=>x.dup).length;
-  $('rev-info').textContent=`Encontrei ${n} lançamento(s) no arquivo${nd?`, ${nd} já importado(s) antes`:''}. Confira as categorias. O que você mudar, eu aprendo para as próximas faturas.`;
-  $('rev-tot').innerHTML=`<b>${sel.length}</b> selecionado(s) · <b class="mono">${fmt(tot)}</b>`+(R.totalPdf?` · total na fatura: <span class="mono">${fmt(R.totalPdf)}</span>`+(Math.abs(R.totalPdf-tot)<0.05?' <span class="pos">✓ confere</span>':''):'');
-  $('rev-ok').textContent=sel.length?`Importar ${sel.length} lançamento(s)`:'Nada selecionado';$('rev-ok').disabled=!sel.length;}
+  $('rev-info').textContent=`Encontrei ${n} item(ns) no arquivo${nd?`, ${nd} já guardado(s) antes`:''}. Confira as categorias. O que você mudar, eu aprendo para as próximas faturas.`;
+  $('rev-tot').innerHTML=`<b>${sel.length}</b> item(ns) · somam <b class="mono">${fmt(tot)}</b>`+(R.totalPdf?` · total na fatura: <span class="mono">${fmt(R.totalPdf)}</span>`+(Math.abs(R.totalPdf-tot)<0.05?' <span class="pos">✓ confere</span>':''):'');
+  const m=modoRev();$('w-rev-modo').hidden=m!=='itens';
+  $('rev-ok').disabled=m==='itens'&&!sel.length;
+  $('rev-ok').textContent=m==='total'?`Salvar fatura (${fmt(parseValor($('rev-valor').value)||0)} no Painel)`:(sel.length?`Salvar e lançar ${sel.length} compra(s)`:'Nada selecionado');}
+document.querySelectorAll('input[name=rev-modo-g]').forEach(r=>r.addEventListener('change',resumoRevisao));
+$('rev-valor').addEventListener('input',()=>{REV.valorEditado=true;resumoRevisao();});
 $('rev-lista').addEventListener('change',e=>{const li=e.target.closest('.rv');if(!li)return;const x=REV.itens[+li.dataset.i];
   if(e.target.type==='checkbox'){x.sel=e.target.checked;li.classList.toggle('off',!x.sel);}
   else if(e.target.classList.contains('rv-cat')){x.cat=e.target.value;x.fonte='usuario';
@@ -849,28 +949,34 @@ $('rev-venc').addEventListener('change',async()=>{await marcarDuplicados();rende
 const fecharRev=()=>{$('rev').hidden=true;document.body.classList.remove('travado');REV=null;};
 $('rev-fechar').onclick=fecharRev;$('rev-cancel').onclick=fecharRev;
 
-$('rev-ok').onclick=async()=>{const R=REV,venc=$('rev-venc').value,modo=$('rev-modo').value;if(!venc)return toast('Informe o vencimento da fatura.');
-  const sel=R.itens.filter(x=>x.sel);if(!sel.length)return;const b=$('rev-ok');b.disabled=true;b.textContent='Importando…';
-  try{const total=sel.reduce((s,x)=>s+(x.credito?-x.valor:x.valor),0);
-    const imp=await sb.from('gastos_importacoes').insert({arquivo:R.arquivo.slice(0,200),vencimento:venc,qtd:sel.length,total:Math.round(total*100)/100}).select().single();
-    if(imp.error)throw imp.error;const pago=venc<=hojeISO();
-    const linhas=sel.map(x=>({tipo:x.credito?'receita':'despesa',valor:x.valor,descricao:(x.desc2||x.desc).slice(0,120),
-      data:modo==='compra'&&!x.parc?x.dc:venc,data_compra:x.dc,categoria_id:x.cat||null,forma:'credito',pago,origem:'fatura',importacao_id:imp.data.id}));
-    for(let i=0;i<linhas.length;i+=200){const r=await sb.from('gastos_lancamentos').insert(linhas.slice(i,i+200));if(r.error){await sb.from('gastos_importacoes').delete().eq('id',imp.data.id);throw r.error;}}
-    await aprender(sel.filter(x=>!x.credito&&x.cat&&x.cat!==x.sug).map(x=>({desc:x.desc,categoria_id:x.cat})));
-    fecharRev();$('fx-arq').value='';
-    const [y,m]=(modo==='compra'?sel.map(x=>x.dc).sort().pop():venc).split('-').map(Number);MES={y,m:m-1};
-    toast(`${linhas.length} lançamento(s) importado(s).`);novoForm();await carregarMes();carregarImportacoes();
-    $('sec-cat').scrollIntoView({behavior:'smooth'});
-  }catch(e){toast(erroPT(e));b.disabled=false;resumoRevisao();}};
+async function catFatura(){let c=catPorNome('Fatura do cartão','despesa');if(c)return c;
+  const {data}=await sb.from('gastos_categorias').insert({nome:'Fatura do cartão',tipo:'despesa',cor:'#283593',icone:'💳'}).select().single();
+  if(data){CATS.push(data);montarSelectCats();}return data;}
+async function lancarTotal(imp,pago){const c=await catFatura();
+  return sb.from('gastos_lancamentos').insert({tipo:'despesa',valor:Number(imp.total),descricao:('Fatura '+(imp.cartao||'cartão')).slice(0,120),data:imp.vencimento,
+    categoria_id:c?.id||null,forma:'outro',pago,origem:'fatura_total',importacao_id:imp.id}).select('id').single();}
+async function inserirEmLotes(tabela,linhas,sel='id'){const ids=[];for(let i=0;i<linhas.length;i+=200){const r=await sb.from(tabela).insert(linhas.slice(i,i+200)).select(sel);if(r.error)throw r.error;ids.push(...(r.data||[]));}return ids;}
 
-async function carregarImportacoes(){const {data}=await sb.from('gastos_importacoes').select('*').order('criado_em',{ascending:false}).limit(8);
-  const el=$('fx-hist');if(!data||!data.length){el.innerHTML='';return;}
-  el.innerHTML='<h2 style="margin-top:4px">Faturas importadas</h2><ul class="imps">'+data.map(i=>`<li data-id="${i.id}"><span><b>${esc(i.arquivo||'fatura')}</b><br><span class="hint">venc. ${i.vencimento?i.vencimento.split('-').reverse().join('/'):'–'} · ${i.qtd} itens · <span class="mono">${fmt(i.total)}</span></span></span><button class="small danger" type="button">Desfazer</button></li>`).join('')+'</ul>';}
-$('fx-hist').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.conf!=='1'){b.dataset.conf='1';b.textContent='Apagar os lançamentos?';setTimeout(()=>{b.dataset.conf='';b.textContent='Desfazer';},3500);return;}
-  const {error}=await sb.from('gastos_importacoes').delete().eq('id',b.closest('li').dataset.id);
-  if(error)return toast(erroPT(error));toast('Importação desfeita.');carregarImportacoes();carregarMes();});
+$('rev-ok').onclick=async()=>{const R=REV,venc=$('rev-venc').value,modoData=$('rev-modo').value,modo=modoRev();if(!venc)return toast('Informe o vencimento da fatura.');
+  const cartao=$('rev-cartao').value.trim()||'Cartão',valorFat=parseValor($('rev-valor').value);
+  const sel=R.itens.filter(x=>x.sel);if(modo==='itens'&&!sel.length)return;
+  if(modo==='total'&&!(valorFat>0))return toast('Informe o valor da fatura.');
+  const b=$('rev-ok');b.disabled=true;b.textContent='Salvando…';let impId=null;
+  try{const pago=venc<=hojeISO();
+    const imp=await sb.from('gastos_importacoes').insert({arquivo:R.arquivo.slice(0,200),cartao:cartao.slice(0,40),vencimento:venc,modo,qtd:sel.length,total:modo==='total'?valorFat:somaSel()}).select().single();
+    if(imp.error)throw imp.error;impId=imp.data.id;
+    let lancIds=[];
+    if(modo==='total'){const r=await lancarTotal(imp.data,pago);if(r.error)throw r.error;}
+    else lancIds=await inserirEmLotes('gastos_lancamentos',sel.map(x=>({tipo:x.credito?'receita':'despesa',valor:x.valor,descricao:(x.desc2||x.desc).slice(0,120),
+      data:modoData==='compra'&&!x.parc?x.dc:venc,data_compra:x.dc,categoria_id:x.cat||null,forma:'credito',pago,origem:'fatura',importacao_id:impId})));
+    await inserirEmLotes('gastos_fatura_itens',sel.map((x,i)=>({importacao_id:impId,data_compra:x.dc,descricao:(x.desc2||x.desc).slice(0,120),valor:x.valor,credito:!!x.credito,
+      categoria_id:x.cat||null,parcela:x.parc?x.parc.join('/'):null,lancamento_id:lancIds[i]?.id||null})));
+    await aprender(sel.filter(x=>!x.credito&&x.cat&&x.cat!==x.sug).map(x=>({desc:x.desc,categoria_id:x.cat})));
+    fecharRev();$('fx-arq').value='';$('fx-nome').textContent='';$('fx-texto').value='';
+    const [y,m]=venc.split('-').map(Number);MES={y,m:m-1};
+    toast(modo==='total'?`Fatura ${cartao} salva: ${fmt(valorFat)} no Painel e ${sel.length} item(ns) no detalhe.`:`Fatura ${cartao} salva com ${sel.length} compra(s) no Painel.`);
+    novoForm();await carregarMes();await carregarFaturas();abrirFatura(impId);
+  }catch(e){if(impId)await sb.from('gastos_importacoes').delete().eq('id',impId);toast(erroPT(e));b.disabled=false;resumoRevisao();}};
 
 // ===================== relatório do mês =====================
 function abrirRelatorio(){const L=doMes(),desp=L.filter(l=>l.tipo==='despesa'),rec=L.filter(l=>l.tipo==='receita');
@@ -895,6 +1001,7 @@ function abrirRelatorio(){const L=doMes(),desp=L.filter(l=>l.tipo==='despesa'),r
    <table class="tab"><thead><tr><th>Categoria</th><th class="n">Itens</th><th class="n">Total</th><th class="n">% do mês</th><th class="n">Média ${temAnt?temAnt+' mês(es) ant.':'ant.'}</th><th class="n">Variação</th><th class="n">Orçamento</th></tr></thead><tbody>
    ${cats.map(({k,c,ls,t})=>{const m=media(k),o=Number(c.orcamento)||0;return `<tr><td><i class="dot" style="background:${esc(c.cor)}"></i> ${esc(c.nome)}</td><td class="n">${ls.length}</td><td class="n mono"><b>${fmt(t)}</b></td><td class="n">${tD?Math.round(t/tD*100):0}%</td><td class="n mono">${m==null?'–':fmt(m)}</td>${varia(t,m)}<td class="n ${o&&t>o?'neg':''}">${o?fmt(o):'–'}</td></tr>`;}).join('')||'<tr><td colspan="7" class="hint">Nenhuma despesa neste mês.</td></tr>'}
    </tbody><tfoot><tr><td>Total</td><td class="n">${desp.length}</td><td class="n mono"><b>${fmt(tD)}</b></td><td class="n">100%</td><td></td><td></td><td></td></tr></tfoot></table>
+   <div id="rel-fat"></div>
    <h2>Onde você mais gastou</h2>
    <table class="tab tab-est"><thead><tr><th>Estabelecimento</th><th>Categoria</th><th class="n">Vezes</th><th class="n">Total</th></tr></thead><tbody>
    ${ests.map(e=>`<tr><td>${esc(e.nome)}</td><td>${esc(catPorId(e.cat)?.nome||'–')}</td><td class="n">${e.n}</td><td class="n mono">${fmt(e.t)}</td></tr>`).join('')||'<tr><td colspan="4" class="hint">–</td></tr>'}
@@ -903,12 +1010,172 @@ function abrirRelatorio(){const L=doMes(),desp=L.filter(l=>l.tipo==='despesa'),r
    ${cats.map(({c,ls,t})=>`<div class="rel-cat"><h3><i class="dot" style="background:${esc(c.cor)}"></i> ${esc(c.nome)} <span class="mono">${fmt(t)}</span></h3>
      <table class="tab tab-det"><tbody>${ls.map(l=>`<tr><td class="d">${dt(l.data_compra||l.data)}</td><td>${esc(l.descricao||c.nome)}${l.pago?'':' <span class="tag">a pagar</span>'}</td><td>${FORMAS[l.forma]||''}</td><td class="n mono">${fmt(l.valor)}</td></tr>`).join('')}</tbody></table></div>`).join('')}
    ${rec.length?`<h2>Receitas</h2><table class="tab"><tbody>${rec.sort((a,b)=>a.data.localeCompare(b.data)).map(l=>`<tr><td class="d">${dt(l.data)}</td><td>${esc(l.descricao||catPorId(l.categoria_id)?.nome||'')}</td><td>${esc(catPorId(l.categoria_id)?.nome||'')}</td><td class="n mono pos">${fmt(l.valor)}</td></tr>`).join('')}</tbody></table>`:''}`;
-  $('rel').hidden=false;document.body.classList.add('travado');$('rel').scrollTop=0;}
+  $('rel').hidden=false;document.body.classList.add('travado');$('rel').scrollTop=0;relFaturas();}
+async function relFaturas(){const ini=iso(MES.y,MES.m,1),fim=iso(MES.y,MES.m,fimMes(MES.y,MES.m));
+  const {data:fs}=await sb.from('gastos_importacoes').select('*').gte('vencimento',ini).lte('vencimento',fim);if(!fs||!fs.length)return;
+  const {data:its}=await sb.from('gastos_fatura_itens').select('*').in('importacao_id',fs.map(f=>f.id));
+  const desp=(its||[]).filter(x=>!x.credito).map(x=>({...x,valor:Number(x.valor)})),tot=desp.reduce((s,x)=>s+x.valor,0);
+  const por={};desp.forEach(x=>{const k=x.categoria_id||'_';const p=por[k]=por[k]||{n:0,t:0};p.n++;p.t+=x.valor;});
+  const est={};desp.forEach(x=>{const k=chave(x.descricao)||x.descricao;const e=est[k]=est[k]||{n:0,t:0,nome:x.descricao.replace(/\s*\(?\d{1,2}\/\d{1,2}\)?\s*$/,''),cat:x.categoria_id};e.n++;e.t+=x.valor;});
+  const el=$('rel-fat');if(!el)return;
+  el.innerHTML=`<h2>Faturas do cartão deste mês</h2>
+   <table class="tab"><thead><tr><th>Cartão</th><th>Vencimento</th><th class="n">Itens</th><th class="n">Valor</th></tr></thead><tbody>
+   ${fs.map(f=>`<tr><td>💳 ${esc(f.cartao||'Cartão')}</td><td>${f.vencimento.split('-').reverse().join('/')}</td><td class="n">${f.qtd}</td><td class="n mono">${fmt(f.total)}</td></tr>`).join('')}</tbody></table>
+   ${desp.length?`<h3>Onde foi o dinheiro das faturas</h3>
+   <table class="tab"><thead><tr><th>Categoria</th><th class="n">Compras</th><th class="n">Total</th><th class="n">%</th></tr></thead><tbody>
+   ${Object.entries(por).sort((a,b)=>b[1].t-a[1].t).map(([k,p])=>{const c=catPorId(k)||{nome:'Sem categoria',cor:'#8a948e'};return `<tr><td><i class="dot" style="background:${esc(c.cor)}"></i> ${esc(c.nome)}</td><td class="n">${p.n}</td><td class="n mono"><b>${fmt(p.t)}</b></td><td class="n">${tot?Math.round(p.t/tot*100):0}%</td></tr>`;}).join('')}
+   </tbody><tfoot><tr><td>Total detalhado</td><td class="n">${desp.length}</td><td class="n mono"><b>${fmt(tot)}</b></td><td class="n">100%</td></tr></tfoot></table>
+   <h3>Lojas que mais apareceram nas faturas</h3>
+   <table class="tab tab-est"><thead><tr><th>Estabelecimento</th><th>Categoria</th><th class="n">Vezes</th><th class="n">Total</th></tr></thead><tbody>
+   ${Object.values(est).sort((a,b)=>b.t-a.t).slice(0,15).map(e=>`<tr><td>${esc(e.nome)}</td><td>${esc(catPorId(e.cat)?.nome||'–')}</td><td class="n">${e.n}</td><td class="n mono">${fmt(e.t)}</td></tr>`).join('')}</tbody></table>`
+   :'<p class="hint">Essas faturas ainda não têm itens detalhados. Abra a fatura na aba Faturas para ver ou adicionar.</p>'}`;}
 $('b-rel').onclick=abrirRelatorio;
 $('rel-fechar').onclick=()=>{$('rel').hidden=true;document.body.classList.remove('travado');};
 $('rel-imprimir').onclick=()=>window.print();
 $('rel-csv').onclick=()=>{$('q').value='';$('q-cat').value='';$('q-tipo').value='';renderLista();$('b-csv').click();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('rel').hidden)$('rel-fechar').click();else if(!$('rev').hidden)fecharRev();}});
+
+// ===================== aba Faturas =====================
+let FATURAS=[],FAT_TOT={},FAT_SEL=null,FAT_ITENS=[];
+function irPara(aba,semHash){const fat=aba==='faturas';
+  $('pg-painel').hidden=fat;$('pg-faturas').hidden=!fat;document.querySelector('header .mes').style.visibility=fat?'hidden':'';
+  document.querySelectorAll('.abas button').forEach(b=>{if(b.dataset.aba===aba)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  if(!semHash){const h=fat?'#faturas':'#';if(location.hash!==h)history.replaceState(null,'',fat?'#faturas':location.pathname+location.search);}
+  if(fat&&USER)carregarFaturas();scrollTo(0,0);}
+document.querySelectorAll('.abas button').forEach(b=>b.onclick=()=>irPara(b.dataset.aba));
+document.addEventListener('click',e=>{const b=e.target.closest('[data-ir]');if(b)irPara(b.dataset.ir);});
+window.addEventListener('hashchange',()=>irPara(location.hash==='#faturas'?'faturas':'painel',true));
+
+const dBR=s=>s?s.split('-').reverse().join('/'):'–';
+async function carregarFaturas(){if(!USER)return;
+  const [f,t]=await Promise.all([sb.from('gastos_importacoes').select('*').order('vencimento',{ascending:false}),
+    sb.from('gastos_lancamentos').select('id,importacao_id,pago,valor').eq('origem','fatura_total')]);
+  FATURAS=(f.data||[]).map(x=>({...x,total:Number(x.total)}));FAT_TOT={};(t.data||[]).forEach(l=>{if(l.importacao_id)FAT_TOT[l.importacao_id]=l;});
+  const cartoes=[...new Set(FATURAS.map(x=>x.cartao).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  $('cartoes').innerHTML=cartoes.map(c=>`<option value="${esc(c)}">`).join('');
+  const fc=$('fl-cartao'),atual=fc.value;fc.length=1;cartoes.forEach(c=>fc.add(new Option(c,c)));fc.value=cartoes.includes(atual)?atual:'';fc.hidden=cartoes.length<2;
+  renderFaturas();if(FAT_SEL&&!FATURAS.some(x=>x.id===FAT_SEL))fecharFatura();}
+function faturaPaga(f){const t=FAT_TOT[f.id];return t?t.pago:(f.modo==='itens'?null:false);}
+function renderFaturas(){const fc=$('fl-cartao').value,L=FATURAS.filter(f=>!fc||f.cartao===fc);
+  $('fl-lista').innerHTML=L.length?L.map(f=>{const pg=faturaPaga(f);
+    return `<li data-id="${f.id}" class="${f.id===FAT_SEL?'sel':''}" tabindex="0" role="button" aria-label="Abrir fatura ${esc(f.cartao)} de ${dBR(f.vencimento)}">
+      <b>💳 ${esc(f.cartao||'Cartão')}</b><span class="fv">${fmt(f.total)}</span>
+      <span class="fm">vence ${dBR(f.vencimento)} · ${f.qtd} item(ns) · ${f.modo==='total'?'no Painel: só o total':'no Painel: cada compra'}
+      ${pg===true?'<span class="tag ok">paga</span>':pg===false?'<span class="tag">a pagar</span>':''}</span></li>`;}).join('')
+    :'<li class="vazio" style="display:block;cursor:default">Nenhuma fatura ainda. Adicione a primeira com o arquivo do banco, ou só com o valor.</li>';}
+$('fl-cartao').addEventListener('change',renderFaturas);
+$('fl-lista').addEventListener('click',e=>{const li=e.target.closest('li[data-id]');if(li)abrirFatura(li.dataset.id);});
+$('fl-lista').addEventListener('keydown',e=>{if(e.key==='Enter'){const li=e.target.closest('li[data-id]');if(li)abrirFatura(li.dataset.id);}});
+
+function fecharFatura(){FAT_SEL=null;FAT_ITENS=[];$('sec-fat-det').hidden=true;renderFaturas();}
+async function abrirFatura(id){if($('pg-faturas').hidden)irPara('faturas');
+  if(!FATURAS.some(f=>f.id===id))await carregarFaturas();const f=FATURAS.find(x=>x.id===id);if(!f)return toast('Fatura não encontrada.');
+  FAT_SEL=id;renderFaturas();
+  const {data,error}=await sb.from('gastos_fatura_itens').select('*').eq('importacao_id',id).order('data_compra',{ascending:true});
+  if(error)return toast(erroPT(error));
+  FAT_ITENS=(data||[]).map(x=>({...x,valor:Number(x.valor)}));
+  $('fd-q').value='';$('fd-a-data').value=f.vencimento?addMes(f.vencimento,-1):hojeISO();msg('fd-msg');
+  renderFatura();$('sec-fat-det').hidden=false;
+  if(matchMedia('(max-width:860px)').matches)$('sec-fat-det').scrollIntoView({behavior:'smooth'});}
+function renderFatura(){const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
+  $('fd-tit').textContent=`💳 ${f.cartao||'Cartão'} · vence ${dBR(f.vencimento)}`;
+  $('fd-valor').value=valorTx(f.total);$('fd-venc').value=f.vencimento||'';
+  const t=FAT_TOT[f.id];$('fd-pago').checked=!!(t&&t.pago);$('fd-pago').disabled=!t;
+  $('fd-sem-painel').hidden=!(f.modo==='total'&&!t);
+  $('fd-valor').disabled=f.modo==='itens';$('fd-valor').title=f.modo==='itens'?'Nesta fatura o Painel recebe cada compra; o total é a soma dos itens.':'';
+  const desp=FAT_ITENS.filter(x=>!x.credito),cred=FAT_ITENS.filter(x=>x.credito);
+  const soma=Math.round((desp.reduce((s,x)=>s+x.valor,0)-cred.reduce((s,x)=>s+x.valor,0))*100)/100,falta=Math.round((f.total-soma)*100)/100;
+  $('fd-info').innerHTML=`${f.modo==='total'?'No Painel entra <b>só o valor total</b> desta fatura.':'No Painel entra <b>cada compra</b> desta fatura.'} `+
+    (FAT_ITENS.length?`Itens detalhados somam <b class="mono">${fmt(soma)}</b>`+(Math.abs(falta)>=0.01&&f.modo==='total'?(falta>0?` · <span class="neg">faltam ${fmt(falta)} sem nome</span>`:` · <span class="neg">itens passam do total em ${fmt(-falta)}</span>`):' · <span class="pos">✓ confere com o total</span>')
+      :'Ainda sem itens. Se quiser, adicione abaixo o nome de cada compra.');
+  // por categoria
+  const por={};desp.forEach(x=>{const k=x.categoria_id||'_';por[k]=(por[k]||0)+x.valor;});
+  const tot=desp.reduce((s,x)=>s+x.valor,0),max=Math.max(1,...Object.values(por));
+  $('fd-cats').innerHTML=Object.entries(por).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const c=catPorId(k)||{nome:'Sem categoria',cor:'#8a948e'};
+    return `<li data-fcat="${k}" title="Mostrar só ${esc(c.nome)}"><span class="nm"><i class="dot" style="background:${esc(c.cor)}"></i>${esc(c.nome)}</span>
+      <span class="track"><span class="fill" style="width:${v/max*100}%;background:${esc(c.cor)}"></span></span>
+      <span class="vl">${fmt(v)}<small>${tot?Math.round(v/tot*100):0}%</small></span></li>`;}).join('')||'<li class="vazio" style="display:block">Sem itens detalhados.</li>';
+  renderItens();}
+function renderItens(){const q=norm($('fd-q').value),fc=$('fd-q').dataset.cat||'';
+  const L=FAT_ITENS.filter(x=>(!q||norm(x.descricao).includes(q))&&(!fc||(x.categoria_id||'_')===fc));
+  $('fd-itens').innerHTML=L.map(x=>`<tr data-id="${x.id}"><td class="d">${x.data_compra?x.data_compra.split('-').reverse().slice(0,2).join('/'):'–'}</td>
+    <td>${esc(x.descricao)}${x.parcela?` <span class="tag info">${esc(x.parcela)}</span>`:''}${x.credito?' <span class="tag">crédito</span>':''}</td>
+    <td><select class="fi-cat" aria-label="Categoria de ${esc(x.descricao)}"><option value="">Sem categoria</option>${opcoesCat(x.credito?'receita':'despesa',x.categoria_id)}</select></td>
+    <td class="n mono ${x.credito?'pos':''}">${x.credito?'+ ':''}${fmt(x.valor)}</td>
+    <td><button type="button" class="del" data-fidel="${x.id}" aria-label="Excluir item ${esc(x.descricao)}" title="Excluir item">🗑</button></td></tr>`).join('')
+    ||`<tr><td colspan="5" class="hint">${FAT_ITENS.length?'Nada com esse filtro.':'Nenhum item. Use o campo abaixo para dar nome às compras, se quiser.'}</td></tr>`;
+  if(fc){const c=catPorId(fc);$('fd-msg').className='msg ok';$('fd-msg').hidden=false;$('fd-msg').innerHTML=`Mostrando só ${esc(c?c.nome:'sem categoria')}. <button class="small ghost" type="button" id="fd-limpa">Mostrar tudo</button>`;}
+  else if($('fd-msg').querySelector('#fd-limpa'))msg('fd-msg');}
+$('fd-cats').addEventListener('click',e=>{const li=e.target.closest('li[data-fcat]');if(!li)return;$('fd-q').dataset.cat=li.dataset.fcat;renderItens();});
+$('sec-fat-det').addEventListener('click',e=>{if(e.target.id==='fd-limpa'){$('fd-q').dataset.cat='';msg('fd-msg');renderItens();}});
+$('fd-q').addEventListener('input',renderItens);
+
+// mudar categoria de um item (e do lançamento ligado, se houver); aprende
+$('fd-itens').addEventListener('change',async e=>{if(!e.target.classList.contains('fi-cat'))return;const tr=e.target.closest('tr'),x=FAT_ITENS.find(i=>i.id===tr.dataset.id);
+  const cat=e.target.value||null;const {error}=await sb.from('gastos_fatura_itens').update({categoria_id:cat}).eq('id',x.id);if(error)return toast(erroPT(error));
+  if(x.lancamento_id)await sb.from('gastos_lancamentos').update({categoria_id:cat}).eq('id',x.lancamento_id);
+  x.categoria_id=cat;if(cat&&!x.credito)aprender([{desc:x.descricao,categoria_id:cat}]);
+  // mesma loja dentro da fatura
+  const k=chave(x.descricao),outros=FAT_ITENS.filter(o=>o!==x&&!o.credito&&chave(o.descricao)===k&&o.categoria_id!==cat);
+  for(const o of outros){await sb.from('gastos_fatura_itens').update({categoria_id:cat}).eq('id',o.id);if(o.lancamento_id)await sb.from('gastos_lancamentos').update({categoria_id:cat}).eq('id',o.lancamento_id);o.categoria_id=cat;}
+  renderFatura();toast(outros.length?`Categoria trocada em ${outros.length+1} compras de "${x.descricao}".`:'Categoria trocada.');if(x.lancamento_id)carregarMes();});
+// excluir item (com desfazer)
+$('fd-itens').addEventListener('click',async e=>{const b=e.target.closest('[data-fidel]');if(!b)return;const x=FAT_ITENS.find(i=>i.id===b.dataset.fidel);if(!x)return;
+  const {error}=await sb.from('gastos_fatura_itens').delete().eq('id',x.id);if(error)return toast(erroPT(error));
+  let lanc=null;if(x.lancamento_id){lanc=LANCS.find(l=>l.id===x.lancamento_id)||null;await sb.from('gastos_lancamentos').delete().eq('id',x.lancamento_id);}
+  FAT_ITENS=FAT_ITENS.filter(i=>i!==x);await atualizarQtd();renderFatura();if(lanc)carregarMes();
+  toast('Item excluído: '+x.descricao,'Desfazer',async()=>{if(lanc){const r=await sb.from('gastos_lancamentos').insert(lanc);if(r.error)return toast(erroPT(r.error));}
+    const r=await sb.from('gastos_fatura_itens').insert(x);if(r.error)return toast(erroPT(r.error));FAT_ITENS.push(x);FAT_ITENS.sort((a,b)=>(a.data_compra||'').localeCompare(b.data_compra||''));await atualizarQtd();renderFatura();carregarMes();});});
+// adicionar item à mão
+$('fd-add').addEventListener('submit',async e=>{e.preventDefault();const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
+  const desc=$('fd-a-desc').value.trim(),valor=parseValor($('fd-a-valor').value),data=$('fd-a-data').value||null;
+  if(!desc)return msg('fd-msg','Escreva o nome da compra.','warn');if(!(valor>0))return msg('fd-msg','Digite o valor. Ex.: 45,90','warn');
+  const cat=sugerirCat(desc,'despesa').cat;let lancId=null;
+  if(f.modo==='itens'){const r=await sb.from('gastos_lancamentos').insert({tipo:'despesa',valor,descricao:desc,data:f.vencimento,data_compra:data,categoria_id:cat?.id||null,forma:'credito',pago:!!FAT_TOT[f.id]?.pago||f.vencimento<=hojeISO(),origem:'fatura',importacao_id:f.id}).select('id').single();
+    if(r.error)return msg('fd-msg',erroPT(r.error));lancId=r.data.id;}
+  const {data:it,error}=await sb.from('gastos_fatura_itens').insert({importacao_id:f.id,data_compra:data,descricao:desc.slice(0,120),valor,credito:false,categoria_id:cat?.id||null,lancamento_id:lancId}).select().single();
+  if(error)return msg('fd-msg',erroPT(error));
+  FAT_ITENS.push({...it,valor:Number(it.valor)});FAT_ITENS.sort((a,b)=>(a.data_compra||'').localeCompare(b.data_compra||''));
+  if(f.modo==='itens'){f.total=Math.round((f.total+valor)*100)/100;await sb.from('gastos_importacoes').update({total:f.total}).eq('id',f.id);carregarMes();}
+  await atualizarQtd();$('fd-a-desc').value='';$('fd-a-valor').value='';msg('fd-msg');renderFatura();$('fd-a-desc').focus();
+  toast(`Item adicionado em ${cat?.nome||'Diversos'}.`);});
+async function atualizarQtd(){const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;f.qtd=FAT_ITENS.length;
+  const upd={qtd:f.qtd};if(f.modo==='itens'){f.total=Math.round((FAT_ITENS.filter(x=>!x.credito).reduce((s,x)=>s+x.valor,0)-FAT_ITENS.filter(x=>x.credito).reduce((s,x)=>s+x.valor,0))*100)/100;upd.total=f.total;}
+  await sb.from('gastos_importacoes').update(upd).eq('id',f.id);renderFaturas();}
+// valor, vencimento e pago
+$('fd-valor').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f||f.modo!=='total')return;const v=parseValor($('fd-valor').value);
+  if(!(v>0)){$('fd-valor').value=valorTx(f.total);return toast('Valor inválido.');}
+  await sb.from('gastos_importacoes').update({total:v}).eq('id',f.id);const t=FAT_TOT[f.id];if(t){await sb.from('gastos_lancamentos').update({valor:v}).eq('id',t.id);t.valor=v;}
+  f.total=v;renderFatura();renderFaturas();carregarMes();toast('Valor da fatura atualizado no Painel.');});
+$('fd-venc').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL),v=$('fd-venc').value;if(!f||!v)return;
+  await sb.from('gastos_importacoes').update({vencimento:v}).eq('id',f.id);
+  if(f.modo==='total'){const t=FAT_TOT[f.id];if(t)await sb.from('gastos_lancamentos').update({data:v}).eq('id',t.id);}
+  else await sb.from('gastos_lancamentos').update({data:v}).eq('importacao_id',f.id).eq('origem','fatura');
+  f.vencimento=v;FATURAS.sort((a,b)=>(b.vencimento||'').localeCompare(a.vencimento||''));renderFatura();renderFaturas();carregarMes();toast('Vencimento atualizado.');});
+$('fd-pago').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL),t=f&&FAT_TOT[f.id];if(!t)return;const p=$('fd-pago').checked;
+  const {error}=await sb.from('gastos_lancamentos').update({pago:p}).eq('id',t.id);if(error)return toast(erroPT(error));t.pago=p;renderFaturas();carregarMes();toast(p?'Fatura marcada como paga.':'Fatura marcada como a pagar.');});
+$('fd-relancar').onclick=async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;const r=await lancarTotal(f,f.vencimento<=hojeISO());if(r.error)return toast(erroPT(r.error));
+  await carregarFaturas();renderFatura();carregarMes();toast('Valor da fatura lançado no Painel.');};
+// excluir fatura inteira
+$('fd-excluir').onclick=async()=>{const b=$('fd-excluir');if(b.dataset.conf!=='1'){b.dataset.conf='1';b.textContent='Excluir fatura e itens?';setTimeout(()=>{b.dataset.conf='';b.textContent='Excluir fatura';},3500);return;}
+  b.dataset.conf='';b.textContent='Excluir fatura';const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
+  const {error}=await sb.from('gastos_importacoes').delete().eq('id',f.id);if(error)return toast(erroPT(error));
+  toast(`Fatura ${f.cartao} excluída (e o valor dela saiu do Painel).`);fecharFatura();await carregarFaturas();carregarMes();};
+$('fd-csv').onclick=()=>{const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f||!FAT_ITENS.length)return toast('Esta fatura não tem itens.');
+  const linhas=[['Data','Descrição','Categoria','Parcela','Valor']].concat(FAT_ITENS.map(x=>[dBR(x.data_compra),x.descricao,catPorId(x.categoria_id)?.nome||'',x.parcela||'',valorTx(x.credito?-x.valor:x.valor)]));
+  const csv='﻿'+linhas.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`fatura-${norm(f.cartao).toLowerCase().replace(/ /g,'-')||'cartao'}-${f.vencimento}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);};
+
+// fatura sem arquivo
+$('fm-venc').value=(()=>{const d=new Date();return iso(d.getFullYear(),d.getMonth(),10);})();
+$('fm-form').addEventListener('submit',async e=>{e.preventDefault();msg('fm-msg');
+  const cartao=$('fm-cartao').value.trim(),venc=$('fm-venc').value,v=parseValor($('fm-valor').value);
+  if(!cartao)return msg('fm-msg','Diga qual é o cartão.','warn');if(!venc)return msg('fm-msg','Informe o vencimento.','warn');if(!(v>0))return msg('fm-msg','Digite o valor da fatura. Ex.: 1.234,56','warn');
+  const imp=await sb.from('gastos_importacoes').insert({arquivo:'(sem arquivo)',cartao:cartao.slice(0,40),vencimento:venc,modo:'total',qtd:0,total:v}).select().single();
+  if(imp.error)return msg('fm-msg',erroPT(imp.error));
+  const r=await lancarTotal(imp.data,$('fm-pago').checked);if(r.error){await sb.from('gastos_importacoes').delete().eq('id',imp.data.id);return msg('fm-msg',erroPT(r.error));}
+  $('fm-valor').value='';$('fm-pago').checked=false;const [y,m]=venc.split('-').map(Number);MES={y,m:m-1};
+  toast(`Fatura ${cartao} salva: ${fmt(v)} no Painel.`);await carregarMes();await carregarFaturas();abrirFatura(imp.data.id);});
 
 // ===================== lançamento por voz / frase rápida =====================
 const NUMS={zero:0,um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,treze:13,quatorze:14,catorze:14,quinze:15,
@@ -1031,7 +1298,7 @@ async function lerPlanilha(f){if(!XLSXLIB){await new Promise((ok,err)=>{const s=
   return [];}
 
 // ===================== atualização automática =====================
-const VERSAO='20261111-212330';
+const VERSAO='20261111-213412';
 async function checarVersao(){try{const r=await fetch(location.pathname+'?nv='+Date.now(),{cache:'no-store'});const t=await r.text();
   const m=t.match(/const VERSAO='([^']+)'/);if(m&&m[1]!==VERSAO){let ja='';try{ja=sessionStorage.getItem('gastos_atualizou');}catch(e){}if(ja===m[1])return;
     try{sessionStorage.setItem('gastos_atualizou',m[1]);}catch(e){}toast('Nova versão do app. Atualizando…');setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(m[1])),1200);}}catch(e){}}
