@@ -519,12 +519,14 @@ let toastT;function toast(t,acao,fn){const e=$('toast');e.textContent=t;
   e.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>e.hidden=true,acao?7000:2600);}
 // excluir na hora, com "Desfazer" por 7 segundos
 async function excluirLanc(id){const l=LANCS.find(x=>x.id===id);if(!l)return;
+  const {data:lig}=l.origem==='manual'?await sb.from('gastos_fatura_itens').select('id,importacao_id,valor').eq('lancamento_id',id).eq('ja_lancado',true):{data:[]};
   const {error}=await sb.from('gastos_lancamentos').delete().eq('id',id);
   if(error)return toast(erroPT(error));
+  if(lig&&lig.length)await religarFatura(lig,id,false);
   LANCS=LANCS.filter(x=>x.id!==id);if(EDIT&&EDIT.id===id)novoForm();renderTudo();
   toast('Excluído: '+(l.descricao||catPorId(l.categoria_id)?.nome||'lançamento')+' ('+fmt(l.valor)+')','Desfazer',async()=>{
     const {error}=await sb.from('gastos_lancamentos').insert(l);
-    if(error)return toast(erroPT(error));toast('Lançamento restaurado.');carregarMes();});}
+    if(error)return toast(erroPT(error));if(lig&&lig.length)await religarFatura(lig,id,true);toast('Lançamento restaurado.');carregarMes();});}
 function erroPT(e){const m=(e&&e.message)||String(e);
   if(/Invalid login credentials/i.test(m))return 'E-mail ou senha incorretos.';
   if(/Email not confirmed/i.test(m))return 'Confirme seu e-mail antes de entrar (veja a caixa de entrada e o spam).';
@@ -634,11 +636,12 @@ $('f-lanc').onsubmit=async ev=>{ev.preventDefault();msg('f-msg');
   if(EDIT){r=await sb.from('gastos_lancamentos').update(base).eq('id',EDIT.id);}
   else{const n=+$('f-parc').value||1,linhas=[];
     for(let i=0;i<n;i++)linhas.push({...base,data:addMes(base.data,i),pago:i===0?base.pago:false,descricao:n>1?`${base.descricao||'Parcela'} (${i+1}/${n})`:base.descricao});
-    r=await sb.from('gastos_lancamentos').insert(linhas);}
+    r=await sb.from('gastos_lancamentos').insert(linhas).select('id');}
   $('f-salvar').disabled=false;
   if(r.error)return msg('f-msg',erroPT(r.error));
   if(base.tipo==='despesa'&&base.descricao&&base.categoria_id&&(EDIT?EDIT.categoria_id!==base.categoria_id:CAT_TOCADA))aprender([{desc:base.descricao,categoria_id:base.categoria_id}]);
-  toast(EDIT?'Lançamento atualizado.':'Lançamento salvo.');
+  const novoId=!EDIT&&r.data&&r.data.length===1&&base.tipo==='despesa'?r.data[0].id:null;
+  if(!(novoId&&await avisarSeNaFatura(novoId,base.valor,base.data,'Lançamento salvo.')))toast(EDIT?'Lançamento atualizado.':'Lançamento salvo.');
   const manterTipo=TIPO;novoForm();setTipo(manterTipo);await carregarMes();$('f-valor').focus();};
 
 $('f-excluir').onclick=()=>{if(EDIT)excluirLanc(EDIT.id);};
@@ -894,11 +897,28 @@ async function abrirRevisao(arquivo,r){
   $('rev-cartao').value=$('fx-cartao').value.trim()||adivinharCartao(arquivo)||(FATURAS[0]?.cartao||'');
   document.querySelector('input[name=rev-modo-g][value=total]').checked=true;$('w-rev-modo').hidden=true;
   await marcarDuplicados();renderRevisao();$('rev').hidden=false;document.body.classList.add('travado');}
+const addDias=(s,n)=>{const [y,m,d]=s.split('-').map(Number);const t=new Date(y,m-1,d+n);return iso(t.getFullYear(),t.getMonth(),t.getDate());};
+const diasEntre=(a,b)=>Math.round((new Date(a+'T12:00')-new Date(b+'T12:00'))/864e5);
+// compras da fatura que você já lançou no Painel: mesmo valor e data com até 3 dias de diferença
+async function casarComPainel(){REV.itens.forEach(x=>{x.match=null;x.matchOrig=null;});
+  const alvo=REV.itens.filter(x=>!x.credito&&!x.dup);if(!alvo.length)return;
+  const datas=[];alvo.forEach(x=>{datas.push(x.dc);if(x.parc)datas.push(addMes(x.dc,x.parc[0]-1));});datas.sort();
+  const {data}=await sb.from('gastos_lancamentos').select('id,valor,data,descricao,categoria_id').eq('tipo','despesa').eq('origem','manual').gte('data',addDias(datas[0],-4)).lte('data',addDias(datas[datas.length-1],4));
+  let cands=(data||[]).map(l=>({...l,valor:Number(l.valor)}));if(!cands.length)return;
+  const {data:lig}=await sb.from('gastos_fatura_itens').select('lancamento_id').in('lancamento_id',cands.map(c=>c.id));
+  const usados=new Set((lig||[]).map(x=>x.lancamento_id));
+  for(const x of alvo){const dx=[x.dc];if(x.parc)dx.push(addMes(x.dc,x.parc[0]-1));let best=null,bs=1e9;
+    for(const c of cands){if(usados.has(c.id)||Math.abs(c.valor-x.valor)>0.005)continue;
+      const dd=Math.min(...dx.map(d=>Math.abs(diasEntre(c.data,d))));if(dd>3)continue;
+      const kc=chave(c.descricao),kx=chave(x.desc);let sc=dd*10;if(c.categoria_id&&c.categoria_id===x.cat)sc-=5;if(kc&&kx&&kc.split(' ')[0]===kx.split(' ')[0])sc-=8;
+      if(sc<bs){bs=sc;best=c;}}
+    if(best){usados.add(best.id);x.match=best;x.matchOrig=best;if(best.categoria_id){x.cat=best.categoria_id;x.fonte='painel';}}}}
 async function marcarDuplicados(){if(!REV)return;const venc=$('rev-venc').value;REV.itens.forEach(x=>{x.dc=dataCompra(x,venc);x.dup=false;});
   const ds=REV.itens.map(x=>x.dc).sort();if(!ds.length)return;
   const {data}=await sb.from('gastos_fatura_itens').select('data_compra,valor,descricao').gte('data_compra',ds[0]).lte('data_compra',ds[ds.length-1]);
   const cont={};(data||[]).forEach(l=>{const k=l.data_compra+'|'+Number(l.valor).toFixed(2)+'|'+chave(l.descricao);cont[k]=(cont[k]||0)+1;});
-  REV.itens.forEach(x=>{const k=x.dc+'|'+x.valor.toFixed(2)+'|'+chave(x.desc);if(cont[k]>0){cont[k]--;x.dup=true;x.sel=false;}});}
+  REV.itens.forEach(x=>{const k=x.dc+'|'+x.valor.toFixed(2)+'|'+chave(x.desc);if(cont[k]>0){cont[k]--;x.dup=true;x.sel=false;}});
+  await casarComPainel();}
 function opcoesCat(tipo,sel){return CATS.filter(c=>c.tipo===tipo&&c.nome!=='Fatura do cartão').map(c=>`<option value="${c.id}"${c.id===sel?' selected':''}>${esc(c.icone+'  '+c.nome)}</option>`).join('');}
 function renderRevisao(){const R=REV,q=norm($('rev-q').value);
   const vis=R.itens.filter(x=>!q||norm(x.desc2).includes(q));
@@ -906,7 +926,9 @@ function renderRevisao(){const R=REV,q=norm($('rev-q').value);
   $('rev-lista').innerHTML=vis.map(x=>{const tipo=x.credito?'receita':'despesa';const badges=[
       x.credito?'<span class="tag">pagamento / crédito</span>':'',x.parc?`<span class="tag info">parcela ${x.parc[0]}/${x.parc[1]}</span>`:'',
       x.dup?'<span class="tag">já importado</span>':'',x.futura?'<span class="tag">parcela futura?</span>':'',
-      x.fonte==='padrao'&&!x.credito?'<span class="tag">confira a categoria</span>':''].join('');
+      x.match?`<button type="button" class="tag link" data-lig="${x.i}" title="Toque se for outra compra">↔ já no Painel ${dBR(x.match.data).slice(0,5)} · ${esc(x.match.descricao||'')} ✕</button>`
+        :x.matchOrig?`<button type="button" class="tag info" data-lig="${x.i}">ligar ao lançamento de ${dBR(x.matchOrig.data).slice(0,5)}</button>`:'',
+      x.fonte==='padrao'&&!x.credito&&!x.match?'<span class="tag">confira a categoria</span>':''].join('');
     const [y,m,d]=x.dc.split('-');
     return `<li class="rv${x.sel?'':' off'}" data-i="${x.i}">
       <input type="checkbox" ${x.sel?'checked':''} aria-label="Incluir ${esc(x.desc2)}">
@@ -916,17 +938,23 @@ function renderRevisao(){const R=REV,q=norm($('rev-q').value);
   resumoRevisao();}
 const somaSel=()=>{const sel=REV.itens.filter(x=>x.sel);return Math.round((sel.filter(x=>!x.credito).reduce((s,x)=>s+x.valor,0)-sel.filter(x=>x.credito).reduce((s,x)=>s+x.valor,0))*100)/100;};
 const modoRev=()=>document.querySelector('input[name=rev-modo-g]:checked').value;
+const jaSel=()=>REV.itens.filter(x=>x.sel&&x.match&&!x.credito);
 function resumoRevisao(){const R=REV,sel=R.itens.filter(x=>x.sel),desp=sel.filter(x=>!x.credito);const tot=somaSel();
+  const ja=jaSel(),jaV=Math.round(ja.reduce((s,x)=>s+x.valor,0)*100)/100;
   const por={};desp.forEach(x=>por[x.cat]=(por[x.cat]||0)+x.valor);
   $('rev-cats').innerHTML=Object.entries(por).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const c=catPorId(k)||{nome:'?',cor:'#888'};
     return `<span class="chip"><i class="dot" style="background:${esc(c.cor)}"></i>${esc(c.nome)} <b class="mono">${fmt(v)}</b></span>`;}).join('');
   if(!R.valorEditado)$('rev-valor').value=valorTx(R.totalPdf||tot);
   const n=R.itens.length,nd=R.itens.filter(x=>x.dup).length;
   $('rev-info').textContent=`${n} item(ns)${nd?` · ${nd} já guardado(s) antes`:''}`;
-  $('rev-tot').innerHTML=`<b>${sel.length}</b> item(ns) · somam <b class="mono">${fmt(tot)}</b>`+(R.totalPdf?` · total na fatura: <span class="mono">${fmt(R.totalPdf)}</span>`+(Math.abs(R.totalPdf-tot)<0.05?' <span class="pos">✓ confere</span>':''):'');
+  $('rev-tot').innerHTML=`<b>${sel.length}</b> item(ns) · somam <b class="mono">${fmt(tot)}</b>`+(R.totalPdf?` · total na fatura: <span class="mono">${fmt(R.totalPdf)}</span>`+(Math.abs(R.totalPdf-tot)<0.05?' <span class="pos">✓ confere</span>':''):'')
+    +(ja.length?` · <span class="tag link">${ja.length} já no Painel: ${fmt(jaV)}</span>`:'');
   const m=modoRev();$('w-rev-modo').hidden=m!=='itens';
   $('rev-ok').disabled=m==='itens'&&!sel.length;
-  $('rev-ok').textContent=m==='total'?`Salvar fatura (${fmt(parseValor($('rev-valor').value)||0)} no Painel)`:(sel.length?`Salvar e lançar ${sel.length} compra(s)`:'Nada selecionado');}
+  const noPainel=Math.max(0,Math.round(((parseValor($('rev-valor').value)||0)-jaV)*100)/100);
+  $('rev-ok').textContent=m==='total'?`Salvar fatura (${fmt(noPainel)} no Painel)`:(sel.length?`Salvar e lançar ${sel.length-ja.length} compra(s)`:'Nada selecionado');}
+$('rev-lista').addEventListener('click',e=>{const b=e.target.closest('[data-lig]');if(!b)return;const x=REV.itens[+b.dataset.lig];
+  x.match=x.match?null:x.matchOrig;renderRevisao();});
 document.querySelectorAll('input[name=rev-modo-g]').forEach(r=>r.addEventListener('change',resumoRevisao));
 $('rev-valor').addEventListener('input',()=>{REV.valorEditado=true;resumoRevisao();});
 $('rev-lista').addEventListener('change',e=>{const li=e.target.closest('.rv');if(!li)return;const x=REV.itens[+li.dataset.i];
@@ -946,8 +974,8 @@ $('rev-fechar').onclick=fecharRev;$('rev-cancel').onclick=fecharRev;
 async function catFatura(){let c=catPorNome('Fatura do cartão','despesa');if(c)return c;
   const {data}=await sb.from('gastos_categorias').insert({nome:'Fatura do cartão',tipo:'despesa',cor:'#283593',icone:'💳'}).select().single();
   if(data){CATS.push(data);montarSelectCats();}return data;}
-async function lancarTotal(imp,pago){const c=await catFatura();
-  return sb.from('gastos_lancamentos').insert({tipo:'despesa',valor:Number(imp.total),descricao:('Fatura '+(imp.cartao||'cartão')).slice(0,120),data:imp.vencimento,
+async function lancarTotal(imp,pago,valor){const c=await catFatura();
+  return sb.from('gastos_lancamentos').insert({tipo:'despesa',valor:Math.round(Number(valor??imp.total)*100)/100,descricao:('Fatura '+(imp.cartao||'cartão')).slice(0,120),data:imp.vencimento,
     categoria_id:c?.id||null,forma:'outro',pago,origem:'fatura_total',importacao_id:imp.id}).select('id').single();}
 async function inserirEmLotes(tabela,linhas,sel='id'){const ids=[];for(let i=0;i<linhas.length;i+=200){const r=await sb.from(tabela).insert(linhas.slice(i,i+200)).select(sel);if(r.error)throw r.error;ids.push(...(r.data||[]));}return ids;}
 
@@ -959,16 +987,19 @@ $('rev-ok').onclick=async()=>{const R=REV,venc=$('rev-venc').value,modoData=$('r
   try{const pago=venc<=hojeISO();
     const imp=await sb.from('gastos_importacoes').insert({arquivo:R.arquivo.slice(0,200),cartao:cartao.slice(0,40),vencimento:venc,modo,qtd:sel.length,total:modo==='total'?valorFat:somaSel()}).select().single();
     if(imp.error)throw imp.error;impId=imp.data.id;
-    let lancIds=[];
-    if(modo==='total'){const r=await lancarTotal(imp.data,pago);if(r.error)throw r.error;}
-    else lancIds=await inserirEmLotes('gastos_lancamentos',sel.map(x=>({tipo:x.credito?'receita':'despesa',valor:x.valor,descricao:(x.desc2||x.desc).slice(0,120),
-      data:modoData==='compra'&&!x.parc?x.dc:venc,data_compra:x.dc,categoria_id:x.cat||null,forma:'credito',pago,origem:'fatura',importacao_id:impId})));
-    await inserirEmLotes('gastos_fatura_itens',sel.map((x,i)=>({importacao_id:impId,data_compra:x.dc,descricao:(x.desc2||x.desc).slice(0,120),valor:x.valor,credito:!!x.credito,
-      categoria_id:x.cat||null,parcela:x.parc?x.parc.join('/'):null,lancamento_id:lancIds[i]?.id||null})));
+    const ja=sel.filter(x=>x.match&&!x.credito),jaV=Math.round(ja.reduce((s,x)=>s+x.valor,0)*100)/100;
+    const ligado=new Map();ja.forEach(x=>ligado.set(x,x.match.id));
+    if(modo==='total'){const noPainel=Math.round((valorFat-jaV)*100)/100;if(noPainel>0){const r=await lancarTotal(imp.data,pago,noPainel);if(r.error)throw r.error;}}
+    else{const novos=sel.filter(x=>!ligado.has(x));
+      const ids=await inserirEmLotes('gastos_lancamentos',novos.map(x=>({tipo:x.credito?'receita':'despesa',valor:x.valor,descricao:(x.desc2||x.desc).slice(0,120),
+        data:modoData==='compra'&&!x.parc?x.dc:venc,data_compra:x.dc,categoria_id:x.cat||null,forma:'credito',pago,origem:'fatura',importacao_id:impId})));
+      novos.forEach((x,i)=>ligado.set(x,ids[i]?.id||null));}
+    await inserirEmLotes('gastos_fatura_itens',sel.map(x=>({importacao_id:impId,data_compra:x.dc,descricao:(x.desc2||x.desc).slice(0,120),valor:x.valor,credito:!!x.credito,
+      categoria_id:x.cat||null,parcela:x.parc?x.parc.join('/'):null,lancamento_id:ligado.get(x)||null,ja_lancado:!!(x.match&&!x.credito)})));
     await aprender(sel.filter(x=>!x.credito&&x.cat&&x.cat!==x.sug).map(x=>({desc:x.desc,categoria_id:x.cat})));
     fecharRev();$('fx-arq').value='';$('fx-nome').textContent='';$('fx-texto').value='';
     const [y,m]=venc.split('-').map(Number);MES={y,m:m-1};
-    toast(modo==='total'?`Fatura ${cartao} salva: ${fmt(valorFat)} no Painel e ${sel.length} item(ns) no detalhe.`:`Fatura ${cartao} salva com ${sel.length} compra(s) no Painel.`);
+    toast((modo==='total'?`Fatura ${cartao} salva: ${fmt(Math.max(0,valorFat-jaV))} no Painel.`:`Fatura ${cartao} salva com ${sel.length-ja.length} compra(s) no Painel.`)+(ja.length?` ${ja.length} compra(s) que você já tinha lançado não foram duplicadas.`:''));
     novoForm();await carregarMes();await carregarFaturas();abrirFatura(impId);
   }catch(e){if(impId)await sb.from('gastos_importacoes').delete().eq('id',impId);toast(erroPT(e));b.disabled=false;resumoRevisao();}};
 
@@ -1049,6 +1080,9 @@ async function carregarFaturas(){if(!USER)return;
   $('cartoes').innerHTML=cartoes.map(c=>`<option value="${esc(c)}">`).join('');
   const fc=$('fl-cartao'),atual=fc.value;fc.length=1;cartoes.forEach(c=>fc.add(new Option(c,c)));fc.value=cartoes.includes(atual)?atual:'';fc.hidden=cartoes.length<2;
   renderFaturas();if(FAT_SEL&&!FATURAS.some(x=>x.id===FAT_SEL))fecharFatura();}
+const jaLanc=()=>Math.round(FAT_ITENS.filter(x=>x.ja_lancado&&!x.credito).reduce((s,x)=>s+x.valor,0)*100)/100;
+async function ajustarTotalPainel(f){if(f.modo!=='total')return;const t=FAT_TOT[f.id];const v=Math.round((f.total-jaLanc())*100)/100;
+  if(t){if(v>0){await sb.from('gastos_lancamentos').update({valor:v}).eq('id',t.id);t.valor=v;}}}
 function faturaPaga(f){const t=FAT_TOT[f.id];return t?t.pago:(f.modo==='itens'?null:false);}
 function renderFaturas(){const fc=$('fl-cartao').value,L=FATURAS.filter(f=>!fc||f.cartao===fc);
   $('fl-lista').innerHTML=L.length?L.map(f=>{const pg=faturaPaga(f);
@@ -1081,6 +1115,8 @@ function renderFatura(){const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
   const soma=Math.round((desp.reduce((s,x)=>s+x.valor,0)-cred.reduce((s,x)=>s+x.valor,0))*100)/100,falta=Math.round((f.total-soma)*100)/100;
   $('fd-info').innerHTML=(FAT_ITENS.length?`Itens somam <b class="mono">${fmt(soma)}</b>`+(Math.abs(falta)>=0.01&&f.modo==='total'?(falta>0?` · <span class="neg">faltam ${fmt(falta)} sem nome</span>`:` · <span class="neg">itens passam do total em ${fmt(-falta)}</span>`):' · <span class="pos">✓ confere</span>')
       :'');
+  const ja=FAT_ITENS.filter(x=>x.ja_lancado&&!x.credito);
+  if(ja.length&&f.modo==='total')$('fd-info').innerHTML+=` · <span class="tag link">${ja.length} já estava(m) no Painel: ${fmt(jaLanc())}</span> · a fatura entra no Painel com <b class="mono">${fmt(Math.max(0,f.total-jaLanc()))}</b>`;
   // por categoria
   const por={};desp.forEach(x=>{const k=x.categoria_id||'_';por[k]=(por[k]||0)+x.valor;});
   const tot=desp.reduce((s,x)=>s+x.valor,0),max=Math.max(1,...Object.values(por));
@@ -1092,7 +1128,7 @@ function renderFatura(){const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
 function renderItens(){const q=norm($('fd-q').value),fc=$('fd-q').dataset.cat||'';
   const L=FAT_ITENS.filter(x=>(!q||norm(x.descricao).includes(q))&&(!fc||(x.categoria_id||'_')===fc));
   $('fd-itens').innerHTML=L.map(x=>`<tr data-id="${x.id}"><td class="d">${x.data_compra?x.data_compra.split('-').reverse().slice(0,2).join('/'):'–'}</td>
-    <td>${esc(x.descricao)}${x.parcela?` <span class="tag info">${esc(x.parcela)}</span>`:''}${x.credito?' <span class="tag">crédito</span>':''}</td>
+    <td>${esc(x.descricao)}${x.parcela?` <span class="tag info">${esc(x.parcela)}</span>`:''}${x.credito?' <span class="tag">crédito</span>':''}${x.ja_lancado?' <span class="tag link" title="Você já tinha lançado esta compra no Painel">já no Painel</span>':''}</td>
     <td><select class="fi-cat" aria-label="Categoria de ${esc(x.descricao)}"><option value="">Sem categoria</option>${opcoesCat(x.credito?'receita':'despesa',x.categoria_id)}</select></td>
     <td class="n mono ${x.credito?'pos':''}">${x.credito?'+ ':''}${fmt(x.valor)}</td>
     <td><button type="button" class="del" data-fidel="${x.id}" aria-label="Excluir item ${esc(x.descricao)}" title="Excluir item">🗑</button></td></tr>`).join('')
@@ -1115,10 +1151,12 @@ $('fd-itens').addEventListener('change',async e=>{if(!e.target.classList.contain
 // excluir item (com desfazer)
 $('fd-itens').addEventListener('click',async e=>{const b=e.target.closest('[data-fidel]');if(!b)return;const x=FAT_ITENS.find(i=>i.id===b.dataset.fidel);if(!x)return;
   const {error}=await sb.from('gastos_fatura_itens').delete().eq('id',x.id);if(error)return toast(erroPT(error));
-  let lanc=null;if(x.lancamento_id){lanc=LANCS.find(l=>l.id===x.lancamento_id)||null;await sb.from('gastos_lancamentos').delete().eq('id',x.lancamento_id);}
-  FAT_ITENS=FAT_ITENS.filter(i=>i!==x);await atualizarQtd();renderFatura();if(lanc)carregarMes();
+  // lançamento criado pela fatura sai junto; um lançamento seu (já no Painel) fica
+  let lanc=null;if(x.lancamento_id&&!x.ja_lancado){lanc=LANCS.find(l=>l.id===x.lancamento_id)||null;await sb.from('gastos_lancamentos').delete().eq('id',x.lancamento_id);}
+  const f=FATURAS.find(i=>i.id===FAT_SEL);
+  FAT_ITENS=FAT_ITENS.filter(i=>i!==x);await atualizarQtd();if(x.ja_lancado&&f)await ajustarTotalPainel(f);renderFatura();carregarMes();
   toast('Item excluído: '+x.descricao,'Desfazer',async()=>{if(lanc){const r=await sb.from('gastos_lancamentos').insert(lanc);if(r.error)return toast(erroPT(r.error));}
-    const r=await sb.from('gastos_fatura_itens').insert(x);if(r.error)return toast(erroPT(r.error));FAT_ITENS.push(x);FAT_ITENS.sort((a,b)=>(a.data_compra||'').localeCompare(b.data_compra||''));await atualizarQtd();renderFatura();carregarMes();});});
+    const r=await sb.from('gastos_fatura_itens').insert(x);if(r.error)return toast(erroPT(r.error));FAT_ITENS.push(x);FAT_ITENS.sort((a,b)=>(a.data_compra||'').localeCompare(b.data_compra||''));await atualizarQtd();if(x.ja_lancado&&f)await ajustarTotalPainel(f);renderFatura();carregarMes();});});
 // adicionar item à mão
 $('fd-add').addEventListener('submit',async e=>{e.preventDefault();const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
   const desc=$('fd-a-desc').value.trim(),valor=parseValor($('fd-a-valor').value),data=$('fd-a-data').value||null;
@@ -1138,8 +1176,7 @@ async function atualizarQtd(){const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)retu
 // valor, vencimento e pago
 $('fd-valor').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f||f.modo!=='total')return;const v=parseValor($('fd-valor').value);
   if(!(v>0)){$('fd-valor').value=valorTx(f.total);return toast('Valor inválido.');}
-  await sb.from('gastos_importacoes').update({total:v}).eq('id',f.id);const t=FAT_TOT[f.id];if(t){await sb.from('gastos_lancamentos').update({valor:v}).eq('id',t.id);t.valor=v;}
-  f.total=v;renderFatura();renderFaturas();carregarMes();toast('Valor da fatura atualizado no Painel.');});
+  await sb.from('gastos_importacoes').update({total:v}).eq('id',f.id);f.total=v;await ajustarTotalPainel(f);renderFatura();renderFaturas();carregarMes();toast('Valor da fatura atualizado no Painel.');});
 $('fd-venc').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL),v=$('fd-venc').value;if(!f||!v)return;
   await sb.from('gastos_importacoes').update({vencimento:v}).eq('id',f.id);
   if(f.modo==='total'){const t=FAT_TOT[f.id];if(t)await sb.from('gastos_lancamentos').update({data:v}).eq('id',t.id);}
@@ -1147,7 +1184,7 @@ $('fd-venc').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===
   f.vencimento=v;FATURAS.sort((a,b)=>(b.vencimento||'').localeCompare(a.vencimento||''));renderFatura();renderFaturas();carregarMes();toast('Vencimento atualizado.');});
 $('fd-pago').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL),t=f&&FAT_TOT[f.id];if(!t)return;const p=$('fd-pago').checked;
   const {error}=await sb.from('gastos_lancamentos').update({pago:p}).eq('id',t.id);if(error)return toast(erroPT(error));t.pago=p;renderFaturas();carregarMes();toast(p?'Fatura marcada como paga.':'Fatura marcada como a pagar.');});
-$('fd-relancar').onclick=async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;const r=await lancarTotal(f,f.vencimento<=hojeISO());if(r.error)return toast(erroPT(r.error));
+$('fd-relancar').onclick=async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;const r=await lancarTotal(f,f.vencimento<=hojeISO(),Math.max(0.01,f.total-jaLanc()));if(r.error)return toast(erroPT(r.error));
   await carregarFaturas();renderFatura();carregarMes();toast('Valor da fatura lançado no Painel.');};
 // excluir fatura inteira
 $('fd-excluir').onclick=async()=>{const b=$('fd-excluir');if(b.dataset.conf!=='1'){b.dataset.conf='1';b.textContent='Excluir fatura e itens?';setTimeout(()=>{b.dataset.conf='';b.textContent='Excluir fatura';},3500);return;}
@@ -1169,6 +1206,27 @@ $('fm-form').addEventListener('submit',async e=>{e.preventDefault();msg('fm-msg'
   const r=await lancarTotal(imp.data,$('fm-pago').checked);if(r.error){await sb.from('gastos_importacoes').delete().eq('id',imp.data.id);return msg('fm-msg',erroPT(r.error));}
   $('fm-valor').value='';$('fm-pago').checked=false;const [y,m]=venc.split('-').map(Number);MES={y,m:m-1};
   toast(`Fatura ${cartao} salva: ${fmt(v)} no Painel.`);await carregarMes();await carregarFaturas();abrirFatura(imp.data.id);});
+
+
+// ===================== lançou algo que já está numa fatura? =====================
+async function compraNaFatura(valor,data){if(!data)return null;
+  const {data:its}=await sb.from('gastos_fatura_itens').select('*').eq('valor',valor).eq('ja_lancado',false).eq('credito',false).gte('data_compra',addDias(data,-3)).lte('data_compra',addDias(data,3));
+  const it=(its||[]).find(i=>!i.lancamento_id||true);if(!it)return null;
+  if(!FATURAS.some(f=>f.id===it.importacao_id))await carregarFaturas();const f=FATURAS.find(x=>x.id===it.importacao_id);return f?{it,f}:null;}
+async function juntarComFatura(lancId,{it,f}){
+  if(f.modo==='total'){await sb.from('gastos_fatura_itens').update({ja_lancado:true,lancamento_id:lancId}).eq('id',it.id);
+    const t=FAT_TOT[f.id];if(t){const v=Math.round((Number(t.valor)-Number(it.valor))*100)/100;if(v>0){await sb.from('gastos_lancamentos').update({valor:v}).eq('id',t.id);t.valor=v;}}}
+  else{await sb.from('gastos_lancamentos').delete().eq('id',lancId);} // a fatura já tem essa compra como lançamento
+  toast(`Juntei com a compra da fatura ${f.cartao}. Agora conta uma vez só.`);await carregarMes();if(FAT_SEL===f.id)abrirFatura(f.id);}
+async function avisarSeNaFatura(lancId,valor,data,textoOk){const m=await compraNaFatura(valor,data);if(!m)return false;
+  toast(`${textoOk} Essa compra já está na fatura ${m.f.cartao} (${m.it.descricao}, ${dBR(m.it.data_compra).slice(0,5)}).`,'Juntar',()=>juntarComFatura(lancId,m));return true;}
+
+// apagou do Painel um lançamento que estava descontado de uma fatura: devolve o valor para a fatura (e o contrário no Desfazer)
+async function religarFatura(lig,lancId,ligar){for(const it of lig||[]){
+  await sb.from('gastos_fatura_itens').update(ligar?{ja_lancado:true,lancamento_id:lancId}:{ja_lancado:false}).eq('id',it.id);
+  const {data:t}=await sb.from('gastos_lancamentos').select('id,valor').eq('origem','fatura_total').eq('importacao_id',it.importacao_id);
+  if(t&&t[0]){const v=Math.round((Number(t[0].valor)+(ligar?-1:1)*Number(it.valor))*100)/100;if(v>0)await sb.from('gastos_lancamentos').update({valor:v}).eq('id',t[0].id);}}
+  if((lig||[]).length)carregarFaturas();}
 
 // ===================== lançamento por voz / frase rápida =====================
 const NUMS={zero:0,um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,treze:13,quatorze:14,catorze:14,quinze:15,
@@ -1249,6 +1307,7 @@ async function lancarFrase(frase){frase=String(frase||'').trim();if(!frase)retur
   const [y,m]=r.data.split('-').map(Number);if(y!==MES.y||m-1!==MES.m)MES={y,m:m-1};
   await carregarMes();
   const ids=(data||[]).map(x=>x.id);
+  if(ids.length===1&&r.tipo==='despesa'&&await avisarSeNaFatura(ids[0],linhas[0].valor,linhas[0].data,'Lançado.'))return;
   toast(`${r.tipo==='receita'?'Receita':'Despesa'} lançada: ${base.descricao} · ${r.parc>1?r.parc+'x de '+fmt(vParc/100)+' (total '+fmt(r.parc*vParc/100+(cent-vParc*r.parc)/100)+')':fmt(r.valor)} · ${r.cat?.nome||''}`,'Desfazer',async()=>{
     const {error}=await sb.from('gastos_lancamentos').delete().in('id',ids);if(error)return toast(erroPT(error));toast('Lançamento desfeito.');carregarMes();});}
 
@@ -1291,7 +1350,7 @@ async function lerPlanilha(f){if(!XLSXLIB){await new Promise((ok,err)=>{const s=
   return [];}
 
 // ===================== atualização automática =====================
-const VERSAO='20261111-220548';
+const VERSAO='20261112-140748';
 async function checarVersao(){try{const r=await fetch(location.pathname+'?nv='+Date.now(),{cache:'no-store'});const t=await r.text();
   const m=t.match(/const VERSAO='([^']+)'/);if(m&&m[1]!==VERSAO){let ja='';try{ja=sessionStorage.getItem('gastos_atualizou');}catch(e){}if(ja===m[1])return;
     try{sessionStorage.setItem('gastos_atualizou',m[1]);}catch(e){}toast('Nova versão do app. Atualizando…');setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(m[1])),1200);}}catch(e){}}

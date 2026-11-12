@@ -139,11 +139,28 @@ async function abrirRevisao(arquivo,r){
   $('rev-cartao').value=$('fx-cartao').value.trim()||adivinharCartao(arquivo)||(FATURAS[0]?.cartao||'');
   document.querySelector('input[name=rev-modo-g][value=total]').checked=true;$('w-rev-modo').hidden=true;
   await marcarDuplicados();renderRevisao();$('rev').hidden=false;document.body.classList.add('travado');}
+const addDias=(s,n)=>{const [y,m,d]=s.split('-').map(Number);const t=new Date(y,m-1,d+n);return iso(t.getFullYear(),t.getMonth(),t.getDate());};
+const diasEntre=(a,b)=>Math.round((new Date(a+'T12:00')-new Date(b+'T12:00'))/864e5);
+// compras da fatura que você já lançou no Painel: mesmo valor e data com até 3 dias de diferença
+async function casarComPainel(){REV.itens.forEach(x=>{x.match=null;x.matchOrig=null;});
+  const alvo=REV.itens.filter(x=>!x.credito&&!x.dup);if(!alvo.length)return;
+  const datas=[];alvo.forEach(x=>{datas.push(x.dc);if(x.parc)datas.push(addMes(x.dc,x.parc[0]-1));});datas.sort();
+  const {data}=await sb.from('gastos_lancamentos').select('id,valor,data,descricao,categoria_id').eq('tipo','despesa').eq('origem','manual').gte('data',addDias(datas[0],-4)).lte('data',addDias(datas[datas.length-1],4));
+  let cands=(data||[]).map(l=>({...l,valor:Number(l.valor)}));if(!cands.length)return;
+  const {data:lig}=await sb.from('gastos_fatura_itens').select('lancamento_id').in('lancamento_id',cands.map(c=>c.id));
+  const usados=new Set((lig||[]).map(x=>x.lancamento_id));
+  for(const x of alvo){const dx=[x.dc];if(x.parc)dx.push(addMes(x.dc,x.parc[0]-1));let best=null,bs=1e9;
+    for(const c of cands){if(usados.has(c.id)||Math.abs(c.valor-x.valor)>0.005)continue;
+      const dd=Math.min(...dx.map(d=>Math.abs(diasEntre(c.data,d))));if(dd>3)continue;
+      const kc=chave(c.descricao),kx=chave(x.desc);let sc=dd*10;if(c.categoria_id&&c.categoria_id===x.cat)sc-=5;if(kc&&kx&&kc.split(' ')[0]===kx.split(' ')[0])sc-=8;
+      if(sc<bs){bs=sc;best=c;}}
+    if(best){usados.add(best.id);x.match=best;x.matchOrig=best;if(best.categoria_id){x.cat=best.categoria_id;x.fonte='painel';}}}}
 async function marcarDuplicados(){if(!REV)return;const venc=$('rev-venc').value;REV.itens.forEach(x=>{x.dc=dataCompra(x,venc);x.dup=false;});
   const ds=REV.itens.map(x=>x.dc).sort();if(!ds.length)return;
   const {data}=await sb.from('gastos_fatura_itens').select('data_compra,valor,descricao').gte('data_compra',ds[0]).lte('data_compra',ds[ds.length-1]);
   const cont={};(data||[]).forEach(l=>{const k=l.data_compra+'|'+Number(l.valor).toFixed(2)+'|'+chave(l.descricao);cont[k]=(cont[k]||0)+1;});
-  REV.itens.forEach(x=>{const k=x.dc+'|'+x.valor.toFixed(2)+'|'+chave(x.desc);if(cont[k]>0){cont[k]--;x.dup=true;x.sel=false;}});}
+  REV.itens.forEach(x=>{const k=x.dc+'|'+x.valor.toFixed(2)+'|'+chave(x.desc);if(cont[k]>0){cont[k]--;x.dup=true;x.sel=false;}});
+  await casarComPainel();}
 function opcoesCat(tipo,sel){return CATS.filter(c=>c.tipo===tipo&&c.nome!=='Fatura do cartão').map(c=>`<option value="${c.id}"${c.id===sel?' selected':''}>${esc(c.icone+'  '+c.nome)}</option>`).join('');}
 function renderRevisao(){const R=REV,q=norm($('rev-q').value);
   const vis=R.itens.filter(x=>!q||norm(x.desc2).includes(q));
@@ -151,7 +168,9 @@ function renderRevisao(){const R=REV,q=norm($('rev-q').value);
   $('rev-lista').innerHTML=vis.map(x=>{const tipo=x.credito?'receita':'despesa';const badges=[
       x.credito?'<span class="tag">pagamento / crédito</span>':'',x.parc?`<span class="tag info">parcela ${x.parc[0]}/${x.parc[1]}</span>`:'',
       x.dup?'<span class="tag">já importado</span>':'',x.futura?'<span class="tag">parcela futura?</span>':'',
-      x.fonte==='padrao'&&!x.credito?'<span class="tag">confira a categoria</span>':''].join('');
+      x.match?`<button type="button" class="tag link" data-lig="${x.i}" title="Toque se for outra compra">↔ já no Painel ${dBR(x.match.data).slice(0,5)} · ${esc(x.match.descricao||'')} ✕</button>`
+        :x.matchOrig?`<button type="button" class="tag info" data-lig="${x.i}">ligar ao lançamento de ${dBR(x.matchOrig.data).slice(0,5)}</button>`:'',
+      x.fonte==='padrao'&&!x.credito&&!x.match?'<span class="tag">confira a categoria</span>':''].join('');
     const [y,m,d]=x.dc.split('-');
     return `<li class="rv${x.sel?'':' off'}" data-i="${x.i}">
       <input type="checkbox" ${x.sel?'checked':''} aria-label="Incluir ${esc(x.desc2)}">
@@ -161,17 +180,23 @@ function renderRevisao(){const R=REV,q=norm($('rev-q').value);
   resumoRevisao();}
 const somaSel=()=>{const sel=REV.itens.filter(x=>x.sel);return Math.round((sel.filter(x=>!x.credito).reduce((s,x)=>s+x.valor,0)-sel.filter(x=>x.credito).reduce((s,x)=>s+x.valor,0))*100)/100;};
 const modoRev=()=>document.querySelector('input[name=rev-modo-g]:checked').value;
+const jaSel=()=>REV.itens.filter(x=>x.sel&&x.match&&!x.credito);
 function resumoRevisao(){const R=REV,sel=R.itens.filter(x=>x.sel),desp=sel.filter(x=>!x.credito);const tot=somaSel();
+  const ja=jaSel(),jaV=Math.round(ja.reduce((s,x)=>s+x.valor,0)*100)/100;
   const por={};desp.forEach(x=>por[x.cat]=(por[x.cat]||0)+x.valor);
   $('rev-cats').innerHTML=Object.entries(por).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const c=catPorId(k)||{nome:'?',cor:'#888'};
     return `<span class="chip"><i class="dot" style="background:${esc(c.cor)}"></i>${esc(c.nome)} <b class="mono">${fmt(v)}</b></span>`;}).join('');
   if(!R.valorEditado)$('rev-valor').value=valorTx(R.totalPdf||tot);
   const n=R.itens.length,nd=R.itens.filter(x=>x.dup).length;
   $('rev-info').textContent=`${n} item(ns)${nd?` · ${nd} já guardado(s) antes`:''}`;
-  $('rev-tot').innerHTML=`<b>${sel.length}</b> item(ns) · somam <b class="mono">${fmt(tot)}</b>`+(R.totalPdf?` · total na fatura: <span class="mono">${fmt(R.totalPdf)}</span>`+(Math.abs(R.totalPdf-tot)<0.05?' <span class="pos">✓ confere</span>':''):'');
+  $('rev-tot').innerHTML=`<b>${sel.length}</b> item(ns) · somam <b class="mono">${fmt(tot)}</b>`+(R.totalPdf?` · total na fatura: <span class="mono">${fmt(R.totalPdf)}</span>`+(Math.abs(R.totalPdf-tot)<0.05?' <span class="pos">✓ confere</span>':''):'')
+    +(ja.length?` · <span class="tag link">${ja.length} já no Painel: ${fmt(jaV)}</span>`:'');
   const m=modoRev();$('w-rev-modo').hidden=m!=='itens';
   $('rev-ok').disabled=m==='itens'&&!sel.length;
-  $('rev-ok').textContent=m==='total'?`Salvar fatura (${fmt(parseValor($('rev-valor').value)||0)} no Painel)`:(sel.length?`Salvar e lançar ${sel.length} compra(s)`:'Nada selecionado');}
+  const noPainel=Math.max(0,Math.round(((parseValor($('rev-valor').value)||0)-jaV)*100)/100);
+  $('rev-ok').textContent=m==='total'?`Salvar fatura (${fmt(noPainel)} no Painel)`:(sel.length?`Salvar e lançar ${sel.length-ja.length} compra(s)`:'Nada selecionado');}
+$('rev-lista').addEventListener('click',e=>{const b=e.target.closest('[data-lig]');if(!b)return;const x=REV.itens[+b.dataset.lig];
+  x.match=x.match?null:x.matchOrig;renderRevisao();});
 document.querySelectorAll('input[name=rev-modo-g]').forEach(r=>r.addEventListener('change',resumoRevisao));
 $('rev-valor').addEventListener('input',()=>{REV.valorEditado=true;resumoRevisao();});
 $('rev-lista').addEventListener('change',e=>{const li=e.target.closest('.rv');if(!li)return;const x=REV.itens[+li.dataset.i];
@@ -191,8 +216,8 @@ $('rev-fechar').onclick=fecharRev;$('rev-cancel').onclick=fecharRev;
 async function catFatura(){let c=catPorNome('Fatura do cartão','despesa');if(c)return c;
   const {data}=await sb.from('gastos_categorias').insert({nome:'Fatura do cartão',tipo:'despesa',cor:'#283593',icone:'💳'}).select().single();
   if(data){CATS.push(data);montarSelectCats();}return data;}
-async function lancarTotal(imp,pago){const c=await catFatura();
-  return sb.from('gastos_lancamentos').insert({tipo:'despesa',valor:Number(imp.total),descricao:('Fatura '+(imp.cartao||'cartão')).slice(0,120),data:imp.vencimento,
+async function lancarTotal(imp,pago,valor){const c=await catFatura();
+  return sb.from('gastos_lancamentos').insert({tipo:'despesa',valor:Math.round(Number(valor??imp.total)*100)/100,descricao:('Fatura '+(imp.cartao||'cartão')).slice(0,120),data:imp.vencimento,
     categoria_id:c?.id||null,forma:'outro',pago,origem:'fatura_total',importacao_id:imp.id}).select('id').single();}
 async function inserirEmLotes(tabela,linhas,sel='id'){const ids=[];for(let i=0;i<linhas.length;i+=200){const r=await sb.from(tabela).insert(linhas.slice(i,i+200)).select(sel);if(r.error)throw r.error;ids.push(...(r.data||[]));}return ids;}
 
@@ -204,16 +229,19 @@ $('rev-ok').onclick=async()=>{const R=REV,venc=$('rev-venc').value,modoData=$('r
   try{const pago=venc<=hojeISO();
     const imp=await sb.from('gastos_importacoes').insert({arquivo:R.arquivo.slice(0,200),cartao:cartao.slice(0,40),vencimento:venc,modo,qtd:sel.length,total:modo==='total'?valorFat:somaSel()}).select().single();
     if(imp.error)throw imp.error;impId=imp.data.id;
-    let lancIds=[];
-    if(modo==='total'){const r=await lancarTotal(imp.data,pago);if(r.error)throw r.error;}
-    else lancIds=await inserirEmLotes('gastos_lancamentos',sel.map(x=>({tipo:x.credito?'receita':'despesa',valor:x.valor,descricao:(x.desc2||x.desc).slice(0,120),
-      data:modoData==='compra'&&!x.parc?x.dc:venc,data_compra:x.dc,categoria_id:x.cat||null,forma:'credito',pago,origem:'fatura',importacao_id:impId})));
-    await inserirEmLotes('gastos_fatura_itens',sel.map((x,i)=>({importacao_id:impId,data_compra:x.dc,descricao:(x.desc2||x.desc).slice(0,120),valor:x.valor,credito:!!x.credito,
-      categoria_id:x.cat||null,parcela:x.parc?x.parc.join('/'):null,lancamento_id:lancIds[i]?.id||null})));
+    const ja=sel.filter(x=>x.match&&!x.credito),jaV=Math.round(ja.reduce((s,x)=>s+x.valor,0)*100)/100;
+    const ligado=new Map();ja.forEach(x=>ligado.set(x,x.match.id));
+    if(modo==='total'){const noPainel=Math.round((valorFat-jaV)*100)/100;if(noPainel>0){const r=await lancarTotal(imp.data,pago,noPainel);if(r.error)throw r.error;}}
+    else{const novos=sel.filter(x=>!ligado.has(x));
+      const ids=await inserirEmLotes('gastos_lancamentos',novos.map(x=>({tipo:x.credito?'receita':'despesa',valor:x.valor,descricao:(x.desc2||x.desc).slice(0,120),
+        data:modoData==='compra'&&!x.parc?x.dc:venc,data_compra:x.dc,categoria_id:x.cat||null,forma:'credito',pago,origem:'fatura',importacao_id:impId})));
+      novos.forEach((x,i)=>ligado.set(x,ids[i]?.id||null));}
+    await inserirEmLotes('gastos_fatura_itens',sel.map(x=>({importacao_id:impId,data_compra:x.dc,descricao:(x.desc2||x.desc).slice(0,120),valor:x.valor,credito:!!x.credito,
+      categoria_id:x.cat||null,parcela:x.parc?x.parc.join('/'):null,lancamento_id:ligado.get(x)||null,ja_lancado:!!(x.match&&!x.credito)})));
     await aprender(sel.filter(x=>!x.credito&&x.cat&&x.cat!==x.sug).map(x=>({desc:x.desc,categoria_id:x.cat})));
     fecharRev();$('fx-arq').value='';$('fx-nome').textContent='';$('fx-texto').value='';
     const [y,m]=venc.split('-').map(Number);MES={y,m:m-1};
-    toast(modo==='total'?`Fatura ${cartao} salva: ${fmt(valorFat)} no Painel e ${sel.length} item(ns) no detalhe.`:`Fatura ${cartao} salva com ${sel.length} compra(s) no Painel.`);
+    toast((modo==='total'?`Fatura ${cartao} salva: ${fmt(Math.max(0,valorFat-jaV))} no Painel.`:`Fatura ${cartao} salva com ${sel.length-ja.length} compra(s) no Painel.`)+(ja.length?` ${ja.length} compra(s) que você já tinha lançado não foram duplicadas.`:''));
     novoForm();await carregarMes();await carregarFaturas();abrirFatura(impId);
   }catch(e){if(impId)await sb.from('gastos_importacoes').delete().eq('id',impId);toast(erroPT(e));b.disabled=false;resumoRevisao();}};
 

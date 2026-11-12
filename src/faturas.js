@@ -18,6 +18,9 @@ async function carregarFaturas(){if(!USER)return;
   $('cartoes').innerHTML=cartoes.map(c=>`<option value="${esc(c)}">`).join('');
   const fc=$('fl-cartao'),atual=fc.value;fc.length=1;cartoes.forEach(c=>fc.add(new Option(c,c)));fc.value=cartoes.includes(atual)?atual:'';fc.hidden=cartoes.length<2;
   renderFaturas();if(FAT_SEL&&!FATURAS.some(x=>x.id===FAT_SEL))fecharFatura();}
+const jaLanc=()=>Math.round(FAT_ITENS.filter(x=>x.ja_lancado&&!x.credito).reduce((s,x)=>s+x.valor,0)*100)/100;
+async function ajustarTotalPainel(f){if(f.modo!=='total')return;const t=FAT_TOT[f.id];const v=Math.round((f.total-jaLanc())*100)/100;
+  if(t){if(v>0){await sb.from('gastos_lancamentos').update({valor:v}).eq('id',t.id);t.valor=v;}}}
 function faturaPaga(f){const t=FAT_TOT[f.id];return t?t.pago:(f.modo==='itens'?null:false);}
 function renderFaturas(){const fc=$('fl-cartao').value,L=FATURAS.filter(f=>!fc||f.cartao===fc);
   $('fl-lista').innerHTML=L.length?L.map(f=>{const pg=faturaPaga(f);
@@ -50,6 +53,8 @@ function renderFatura(){const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
   const soma=Math.round((desp.reduce((s,x)=>s+x.valor,0)-cred.reduce((s,x)=>s+x.valor,0))*100)/100,falta=Math.round((f.total-soma)*100)/100;
   $('fd-info').innerHTML=(FAT_ITENS.length?`Itens somam <b class="mono">${fmt(soma)}</b>`+(Math.abs(falta)>=0.01&&f.modo==='total'?(falta>0?` · <span class="neg">faltam ${fmt(falta)} sem nome</span>`:` · <span class="neg">itens passam do total em ${fmt(-falta)}</span>`):' · <span class="pos">✓ confere</span>')
       :'');
+  const ja=FAT_ITENS.filter(x=>x.ja_lancado&&!x.credito);
+  if(ja.length&&f.modo==='total')$('fd-info').innerHTML+=` · <span class="tag link">${ja.length} já estava(m) no Painel: ${fmt(jaLanc())}</span> · a fatura entra no Painel com <b class="mono">${fmt(Math.max(0,f.total-jaLanc()))}</b>`;
   // por categoria
   const por={};desp.forEach(x=>{const k=x.categoria_id||'_';por[k]=(por[k]||0)+x.valor;});
   const tot=desp.reduce((s,x)=>s+x.valor,0),max=Math.max(1,...Object.values(por));
@@ -61,7 +66,7 @@ function renderFatura(){const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
 function renderItens(){const q=norm($('fd-q').value),fc=$('fd-q').dataset.cat||'';
   const L=FAT_ITENS.filter(x=>(!q||norm(x.descricao).includes(q))&&(!fc||(x.categoria_id||'_')===fc));
   $('fd-itens').innerHTML=L.map(x=>`<tr data-id="${x.id}"><td class="d">${x.data_compra?x.data_compra.split('-').reverse().slice(0,2).join('/'):'–'}</td>
-    <td>${esc(x.descricao)}${x.parcela?` <span class="tag info">${esc(x.parcela)}</span>`:''}${x.credito?' <span class="tag">crédito</span>':''}</td>
+    <td>${esc(x.descricao)}${x.parcela?` <span class="tag info">${esc(x.parcela)}</span>`:''}${x.credito?' <span class="tag">crédito</span>':''}${x.ja_lancado?' <span class="tag link" title="Você já tinha lançado esta compra no Painel">já no Painel</span>':''}</td>
     <td><select class="fi-cat" aria-label="Categoria de ${esc(x.descricao)}"><option value="">Sem categoria</option>${opcoesCat(x.credito?'receita':'despesa',x.categoria_id)}</select></td>
     <td class="n mono ${x.credito?'pos':''}">${x.credito?'+ ':''}${fmt(x.valor)}</td>
     <td><button type="button" class="del" data-fidel="${x.id}" aria-label="Excluir item ${esc(x.descricao)}" title="Excluir item">🗑</button></td></tr>`).join('')
@@ -84,10 +89,12 @@ $('fd-itens').addEventListener('change',async e=>{if(!e.target.classList.contain
 // excluir item (com desfazer)
 $('fd-itens').addEventListener('click',async e=>{const b=e.target.closest('[data-fidel]');if(!b)return;const x=FAT_ITENS.find(i=>i.id===b.dataset.fidel);if(!x)return;
   const {error}=await sb.from('gastos_fatura_itens').delete().eq('id',x.id);if(error)return toast(erroPT(error));
-  let lanc=null;if(x.lancamento_id){lanc=LANCS.find(l=>l.id===x.lancamento_id)||null;await sb.from('gastos_lancamentos').delete().eq('id',x.lancamento_id);}
-  FAT_ITENS=FAT_ITENS.filter(i=>i!==x);await atualizarQtd();renderFatura();if(lanc)carregarMes();
+  // lançamento criado pela fatura sai junto; um lançamento seu (já no Painel) fica
+  let lanc=null;if(x.lancamento_id&&!x.ja_lancado){lanc=LANCS.find(l=>l.id===x.lancamento_id)||null;await sb.from('gastos_lancamentos').delete().eq('id',x.lancamento_id);}
+  const f=FATURAS.find(i=>i.id===FAT_SEL);
+  FAT_ITENS=FAT_ITENS.filter(i=>i!==x);await atualizarQtd();if(x.ja_lancado&&f)await ajustarTotalPainel(f);renderFatura();carregarMes();
   toast('Item excluído: '+x.descricao,'Desfazer',async()=>{if(lanc){const r=await sb.from('gastos_lancamentos').insert(lanc);if(r.error)return toast(erroPT(r.error));}
-    const r=await sb.from('gastos_fatura_itens').insert(x);if(r.error)return toast(erroPT(r.error));FAT_ITENS.push(x);FAT_ITENS.sort((a,b)=>(a.data_compra||'').localeCompare(b.data_compra||''));await atualizarQtd();renderFatura();carregarMes();});});
+    const r=await sb.from('gastos_fatura_itens').insert(x);if(r.error)return toast(erroPT(r.error));FAT_ITENS.push(x);FAT_ITENS.sort((a,b)=>(a.data_compra||'').localeCompare(b.data_compra||''));await atualizarQtd();if(x.ja_lancado&&f)await ajustarTotalPainel(f);renderFatura();carregarMes();});});
 // adicionar item à mão
 $('fd-add').addEventListener('submit',async e=>{e.preventDefault();const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;
   const desc=$('fd-a-desc').value.trim(),valor=parseValor($('fd-a-valor').value),data=$('fd-a-data').value||null;
@@ -107,8 +114,7 @@ async function atualizarQtd(){const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)retu
 // valor, vencimento e pago
 $('fd-valor').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f||f.modo!=='total')return;const v=parseValor($('fd-valor').value);
   if(!(v>0)){$('fd-valor').value=valorTx(f.total);return toast('Valor inválido.');}
-  await sb.from('gastos_importacoes').update({total:v}).eq('id',f.id);const t=FAT_TOT[f.id];if(t){await sb.from('gastos_lancamentos').update({valor:v}).eq('id',t.id);t.valor=v;}
-  f.total=v;renderFatura();renderFaturas();carregarMes();toast('Valor da fatura atualizado no Painel.');});
+  await sb.from('gastos_importacoes').update({total:v}).eq('id',f.id);f.total=v;await ajustarTotalPainel(f);renderFatura();renderFaturas();carregarMes();toast('Valor da fatura atualizado no Painel.');});
 $('fd-venc').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL),v=$('fd-venc').value;if(!f||!v)return;
   await sb.from('gastos_importacoes').update({vencimento:v}).eq('id',f.id);
   if(f.modo==='total'){const t=FAT_TOT[f.id];if(t)await sb.from('gastos_lancamentos').update({data:v}).eq('id',t.id);}
@@ -116,7 +122,7 @@ $('fd-venc').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===
   f.vencimento=v;FATURAS.sort((a,b)=>(b.vencimento||'').localeCompare(a.vencimento||''));renderFatura();renderFaturas();carregarMes();toast('Vencimento atualizado.');});
 $('fd-pago').addEventListener('change',async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL),t=f&&FAT_TOT[f.id];if(!t)return;const p=$('fd-pago').checked;
   const {error}=await sb.from('gastos_lancamentos').update({pago:p}).eq('id',t.id);if(error)return toast(erroPT(error));t.pago=p;renderFaturas();carregarMes();toast(p?'Fatura marcada como paga.':'Fatura marcada como a pagar.');});
-$('fd-relancar').onclick=async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;const r=await lancarTotal(f,f.vencimento<=hojeISO());if(r.error)return toast(erroPT(r.error));
+$('fd-relancar').onclick=async()=>{const f=FATURAS.find(x=>x.id===FAT_SEL);if(!f)return;const r=await lancarTotal(f,f.vencimento<=hojeISO(),Math.max(0.01,f.total-jaLanc()));if(r.error)return toast(erroPT(r.error));
   await carregarFaturas();renderFatura();carregarMes();toast('Valor da fatura lançado no Painel.');};
 // excluir fatura inteira
 $('fd-excluir').onclick=async()=>{const b=$('fd-excluir');if(b.dataset.conf!=='1'){b.dataset.conf='1';b.textContent='Excluir fatura e itens?';setTimeout(()=>{b.dataset.conf='';b.textContent='Excluir fatura';},3500);return;}
@@ -138,3 +144,24 @@ $('fm-form').addEventListener('submit',async e=>{e.preventDefault();msg('fm-msg'
   const r=await lancarTotal(imp.data,$('fm-pago').checked);if(r.error){await sb.from('gastos_importacoes').delete().eq('id',imp.data.id);return msg('fm-msg',erroPT(r.error));}
   $('fm-valor').value='';$('fm-pago').checked=false;const [y,m]=venc.split('-').map(Number);MES={y,m:m-1};
   toast(`Fatura ${cartao} salva: ${fmt(v)} no Painel.`);await carregarMes();await carregarFaturas();abrirFatura(imp.data.id);});
+
+
+// ===================== lançou algo que já está numa fatura? =====================
+async function compraNaFatura(valor,data){if(!data)return null;
+  const {data:its}=await sb.from('gastos_fatura_itens').select('*').eq('valor',valor).eq('ja_lancado',false).eq('credito',false).gte('data_compra',addDias(data,-3)).lte('data_compra',addDias(data,3));
+  const it=(its||[]).find(i=>!i.lancamento_id||true);if(!it)return null;
+  if(!FATURAS.some(f=>f.id===it.importacao_id))await carregarFaturas();const f=FATURAS.find(x=>x.id===it.importacao_id);return f?{it,f}:null;}
+async function juntarComFatura(lancId,{it,f}){
+  if(f.modo==='total'){await sb.from('gastos_fatura_itens').update({ja_lancado:true,lancamento_id:lancId}).eq('id',it.id);
+    const t=FAT_TOT[f.id];if(t){const v=Math.round((Number(t.valor)-Number(it.valor))*100)/100;if(v>0){await sb.from('gastos_lancamentos').update({valor:v}).eq('id',t.id);t.valor=v;}}}
+  else{await sb.from('gastos_lancamentos').delete().eq('id',lancId);} // a fatura já tem essa compra como lançamento
+  toast(`Juntei com a compra da fatura ${f.cartao}. Agora conta uma vez só.`);await carregarMes();if(FAT_SEL===f.id)abrirFatura(f.id);}
+async function avisarSeNaFatura(lancId,valor,data,textoOk){const m=await compraNaFatura(valor,data);if(!m)return false;
+  toast(`${textoOk} Essa compra já está na fatura ${m.f.cartao} (${m.it.descricao}, ${dBR(m.it.data_compra).slice(0,5)}).`,'Juntar',()=>juntarComFatura(lancId,m));return true;}
+
+// apagou do Painel um lançamento que estava descontado de uma fatura: devolve o valor para a fatura (e o contrário no Desfazer)
+async function religarFatura(lig,lancId,ligar){for(const it of lig||[]){
+  await sb.from('gastos_fatura_itens').update(ligar?{ja_lancado:true,lancamento_id:lancId}:{ja_lancado:false}).eq('id',it.id);
+  const {data:t}=await sb.from('gastos_lancamentos').select('id,valor').eq('origem','fatura_total').eq('importacao_id',it.importacao_id);
+  if(t&&t[0]){const v=Math.round((Number(t[0].valor)+(ligar?-1:1)*Number(it.valor))*100)/100;if(v>0)await sb.from('gastos_lancamentos').update({valor:v}).eq('id',t[0].id);}}
+  if((lig||[]).length)carregarFaturas();}

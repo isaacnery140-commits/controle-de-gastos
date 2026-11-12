@@ -77,6 +77,7 @@ async function lancarFrase(frase){frase=String(frase||'').trim();if(!frase)retur
   const [y,m]=r.data.split('-').map(Number);if(y!==MES.y||m-1!==MES.m)MES={y,m:m-1};
   await carregarMes();
   const ids=(data||[]).map(x=>x.id);
+  if(ids.length===1&&r.tipo==='despesa'&&await avisarSeNaFatura(ids[0],linhas[0].valor,linhas[0].data,'Lançado.'))return;
   toast(`${r.tipo==='receita'?'Receita':'Despesa'} lançada: ${base.descricao} · ${r.parc>1?r.parc+'x de '+fmt(vParc/100)+' (total '+fmt(r.parc*vParc/100+(cent-vParc*r.parc)/100)+')':fmt(r.valor)} · ${r.cat?.nome||''}`,'Desfazer',async()=>{
     const {error}=await sb.from('gastos_lancamentos').delete().in('id',ids);if(error)return toast(erroPT(error));toast('Lançamento desfeito.');carregarMes();});}
 
