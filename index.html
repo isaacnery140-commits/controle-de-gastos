@@ -218,7 +218,7 @@ body.travado{overflow:hidden}
 .tab tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--ink)}
 .tab .dot{display:inline-block;vertical-align:0}
 .rel-cat{break-inside:avoid}
-@media (max-width:620px){.tab{font-size:12px}.tab th:nth-child(5),.tab td:nth-child(5),.tab th:nth-child(7),.tab td:nth-child(7){display:none}
+@media (max-width:620px){.tab{font-size:12px}.tab:not(.fd-tab) th:nth-child(5),.tab:not(.fd-tab) td:nth-child(5),.tab:not(.fd-tab) th:nth-child(7),.tab:not(.fd-tab) td:nth-child(7){display:none}
   .tab-est th:nth-child(2),.tab-est td:nth-child(2),.tab-det td:nth-child(3){display:none}.tab td{padding:6px 4px}}
 @media print{
   body{background:#fff;color:#000;padding:0}
@@ -1300,7 +1300,7 @@ async function lerPlanilha(f){if(!XLSXLIB){await new Promise((ok,err)=>{const s=
   return [];}
 
 // ===================== atualização automática =====================
-const VERSAO='20261111-213643';
+const VERSAO='20261111-213828';
 async function checarVersao(){try{const r=await fetch(location.pathname+'?nv='+Date.now(),{cache:'no-store'});const t=await r.text();
   const m=t.match(/const VERSAO='([^']+)'/);if(m&&m[1]!==VERSAO){let ja='';try{ja=sessionStorage.getItem('gastos_atualizou');}catch(e){}if(ja===m[1])return;
     try{sessionStorage.setItem('gastos_atualizou',m[1]);}catch(e){}toast('Nova versão do app. Atualizando…');setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(m[1])),1200);}}catch(e){}}
