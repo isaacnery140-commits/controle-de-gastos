@@ -1,7 +1,7 @@
 // ===================== aba Faturas =====================
 let FATURAS=[],FAT_TOT={},FAT_SEL=null,FAT_ITENS=[];
 function irPara(aba,semHash){const fat=aba==='faturas';
-  $('pg-painel').hidden=fat;$('pg-faturas').hidden=!fat;document.querySelector('header .mes').style.visibility=fat?'hidden':'';
+  $('pg-painel').hidden=fat;$('pg-faturas').hidden=!fat;document.body.classList.toggle('pg-fat',fat);
   document.querySelectorAll('.abas button').forEach(b=>{if(b.dataset.aba===aba)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   if(!semHash){const h=fat?'#faturas':'#';if(location.hash!==h)history.replaceState(null,'',fat?'#faturas':location.pathname+location.search);}
   if(fat&&USER)carregarFaturas();scrollTo(0,0);}

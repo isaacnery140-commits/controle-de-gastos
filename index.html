@@ -139,6 +139,7 @@ details>summary::-webkit-details-marker{display:none}
 details>summary::after{content:" +";color:var(--accent)}
 details[open]>summary::after{content:" −"}
 /* abas e faturas */
+body.pg-fat header .mes{display:none}
 .abas{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px}
 .abas button{background:transparent;border:0;color:var(--muted);border-radius:999px;padding:6px 14px;min-height:34px}
 .abas button[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
@@ -156,7 +157,8 @@ details[open]>summary::after{content:" −"}
 .fd-tab .del:hover{color:var(--err);border-color:var(--err)}
 .fd-add{display:grid;grid-template-columns:140px 1fr 110px auto;gap:8px}
 @media (max-width:620px){.fd-add{grid-template-columns:1fr 1fr}.fd-add #fd-a-desc{grid-column:1 / -1;order:-1}
-  .fd-tab th:nth-child(1),.fd-tab td:nth-child(1){display:none}.fd-tab select{max-width:130px}}
+  .fd-tab th:nth-child(1),.fd-tab td:nth-child(1){display:none}.fd-tab select{max-width:96px;font-size:12px}
+  .fd-tab td{padding:6px 3px}.fd-tab .del{min-width:28px}.tab-wrap{margin:0}}
 fieldset.modo{border:1px solid var(--line);border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;gap:6px;margin:0}
 fieldset.modo legend{font-size:13px;color:var(--muted);padding:0 4px}
 fieldset.modo .check{align-items:flex-start}
@@ -1038,7 +1040,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('rel').hidden
 // ===================== aba Faturas =====================
 let FATURAS=[],FAT_TOT={},FAT_SEL=null,FAT_ITENS=[];
 function irPara(aba,semHash){const fat=aba==='faturas';
-  $('pg-painel').hidden=fat;$('pg-faturas').hidden=!fat;document.querySelector('header .mes').style.visibility=fat?'hidden':'';
+  $('pg-painel').hidden=fat;$('pg-faturas').hidden=!fat;document.body.classList.toggle('pg-fat',fat);
   document.querySelectorAll('.abas button').forEach(b=>{if(b.dataset.aba===aba)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   if(!semHash){const h=fat?'#faturas':'#';if(location.hash!==h)history.replaceState(null,'',fat?'#faturas':location.pathname+location.search);}
   if(fat&&USER)carregarFaturas();scrollTo(0,0);}
@@ -1298,7 +1300,7 @@ async function lerPlanilha(f){if(!XLSXLIB){await new Promise((ok,err)=>{const s=
   return [];}
 
 // ===================== atualização automática =====================
-const VERSAO='20261111-213412';
+const VERSAO='20261111-213643';
 async function checarVersao(){try{const r=await fetch(location.pathname+'?nv='+Date.now(),{cache:'no-store'});const t=await r.text();
   const m=t.match(/const VERSAO='([^']+)'/);if(m&&m[1]!==VERSAO){let ja='';try{ja=sessionStorage.getItem('gastos_atualizou');}catch(e){}if(ja===m[1])return;
     try{sessionStorage.setItem('gastos_atualizou',m[1]);}catch(e){}toast('Nova versão do app. Atualizando…');setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(m[1])),1200);}}catch(e){}}
