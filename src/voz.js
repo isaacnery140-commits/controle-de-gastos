@@ -65,7 +65,7 @@ async function lancarFrase(frase){frase=String(frase||'').trim();if(!frase)retur
   if(!(r.valor>0)){ // sem valor: preenche o formulário para completar
     novoForm();setTipo(r.tipo);$('f-desc').value=r.desc;if(r.cat){$('f-cat').value=r.cat.id;CAT_TOCADA=true;}if(r.forma)$('f-forma').value=r.forma;$('f-data').value=r.data;
     $('sec-form').scrollIntoView({behavior:'smooth'});$('f-valor').focus({preventScroll:true});
-    msg('rp-msg','Não entendi o valor. Completei o resto no formulário: digite o valor e toque em Salvar.','warn');return;}
+    $('rp-txt').value='';msg('rp-msg','Não entendi o valor. Completei o resto no formulário: digite o valor e toque em Salvar.','warn');return;}
   msg('rp-msg');
   const base={tipo:r.tipo,valor:r.valor,descricao:r.desc.slice(0,120),data:r.data,categoria_id:r.cat?.id||null,forma:r.forma||'pix',pago:r.pago};
   const cent=Math.round(r.valor*100),vParc=r.parc>1&&!r.porParcela?Math.floor(cent/r.parc):cent;

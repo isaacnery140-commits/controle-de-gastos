@@ -138,7 +138,7 @@ details>summary::after{content:" +";color:var(--accent)}
 details[open]>summary::after{content:" −"}
 /* lançar falando */
 .rp{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
-.mic{width:52px;height:52px;border-radius:50%;padding:0;font-size:24px;display:grid;place-items:center;background:var(--accent);border-color:var(--accent)}
+.mic{width:52px;height:52px;border-radius:50%;padding:0;font-size:24px;display:grid;place-items:center;background:var(--bg);border:2px solid var(--accent)}
 .mic.ouvindo{background:var(--err);border-color:var(--err);animation:pulso 1.1s ease-in-out infinite}
 @keyframes pulso{0%,100%{box-shadow:0 0 0 0 rgba(179,38,30,.45)}50%{box-shadow:0 0 0 10px rgba(179,38,30,0)}}
 @media (prefers-reduced-motion:reduce){.mic.ouvindo{animation:none}}
@@ -977,7 +977,7 @@ async function lancarFrase(frase){frase=String(frase||'').trim();if(!frase)retur
   if(!(r.valor>0)){ // sem valor: preenche o formulário para completar
     novoForm();setTipo(r.tipo);$('f-desc').value=r.desc;if(r.cat){$('f-cat').value=r.cat.id;CAT_TOCADA=true;}if(r.forma)$('f-forma').value=r.forma;$('f-data').value=r.data;
     $('sec-form').scrollIntoView({behavior:'smooth'});$('f-valor').focus({preventScroll:true});
-    msg('rp-msg','Não entendi o valor. Completei o resto no formulário: digite o valor e toque em Salvar.','warn');return;}
+    $('rp-txt').value='';msg('rp-msg','Não entendi o valor. Completei o resto no formulário: digite o valor e toque em Salvar.','warn');return;}
   msg('rp-msg');
   const base={tipo:r.tipo,valor:r.valor,descricao:r.desc.slice(0,120),data:r.data,categoria_id:r.cat?.id||null,forma:r.forma||'pix',pago:r.pago};
   const cent=Math.round(r.valor*100),vParc=r.parc>1&&!r.porParcela?Math.floor(cent/r.parc):cent;
@@ -1031,7 +1031,7 @@ async function lerPlanilha(f){if(!XLSXLIB){await new Promise((ok,err)=>{const s=
   return [];}
 
 // ===================== atualização automática =====================
-const VERSAO='20261111-211924';
+const VERSAO='20261111-212330';
 async function checarVersao(){try{const r=await fetch(location.pathname+'?nv='+Date.now(),{cache:'no-store'});const t=await r.text();
   const m=t.match(/const VERSAO='([^']+)'/);if(m&&m[1]!==VERSAO){let ja='';try{ja=sessionStorage.getItem('gastos_atualizou');}catch(e){}if(ja===m[1])return;
     try{sessionStorage.setItem('gastos_atualizou',m[1]);}catch(e){}toast('Nova versão do app. Atualizando…');setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(m[1])),1200);}}catch(e){}}
