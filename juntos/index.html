@@ -435,7 +435,7 @@ body.travado{overflow:hidden}
 <div class="aviso" id="aviso"><span id="aviso-t"></span><button id="aviso-b" hidden></button></div>
 
 <script>
-const VERSAO = '4';
+const VERSAO = '5';
 const SB_URL = 'https://pvhoumlovxjlqvmchobv.supabase.co';
 const SB_KEY = 'sb_publishable_qvaNLaOJjn3i43dnzww43Q_ape3VFsV';
 const sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}});
@@ -726,7 +726,7 @@ function desenharGastos() {
     if (l.data !== dia) { dia = l.data; h += `<div class="sec-tit">${esc(nomeDia(dia))}</div>`; }
     const out = l.tipo === 'despesa';
     h += `<button class="lanc" data-id="${l.id}"><div class="b ${out ? 'out' : 'in'}">${icone(l.tipo, l.categoria)}</div>
-      <div class="m"><div class="t">${esc(l.descricao || l.categoria)}</div><div class="s">${esc(l.categoria)}</div></div>
+      <div class="m"><div class="t">${esc(l.descricao || l.categoria)}</div><div class="s">${esc(l.categoria)}${l.fatura_id ? ' · 💳' + (l.data_compra ? ' compra ' + l.data_compra.split('-').reverse().slice(0, 2).join('/') : '') : ''}</div></div>
       <div class="v ${out ? 'out' : 'in'}">${out ? '−' : '+'} ${brl(l.valor)}</div></button>`;
   });
   $('g-lista').innerHTML = h;

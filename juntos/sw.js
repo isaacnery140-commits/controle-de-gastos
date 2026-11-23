@@ -1,5 +1,5 @@
 // Guarda os arquivos do app para abrir rápido e como app instalado. Os dados sempre vêm do servidor.
-const CACHE = "juntos-v4";
+const CACHE = "juntos-v5";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./fatura.js"];
 const LIB = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
 self.addEventListener("install", e => {
