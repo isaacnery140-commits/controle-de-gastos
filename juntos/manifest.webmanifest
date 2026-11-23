@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Juntos — agenda e gastos",
+  "short_name": "Juntos",
+  "description": "Agenda e controle de gastos, compartilhados do jeito que você escolher",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f4f0",
+  "theme_color": "#2f6f5e",
+  "categories": ["productivity", "finance"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
