@@ -139,7 +139,17 @@ nav button.on{color:var(--ac)}
 .acoes{display:grid;gap:10px;margin-top:18px}
 .acoes.duas{grid-template-columns:1fr 1fr}
 .aviso{position:fixed;left:50%;bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 90px);transform:translateX(-50%);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;opacity:0;transition:opacity .2s;pointer-events:none}
-.aviso.on{opacity:1}
+.aviso.on{opacity:1;pointer-events:auto}
+.aviso{display:flex;align-items:center;gap:14px}
+.aviso button{color:var(--ac-soft);font-weight:800;padding:4px 2px;white-space:nowrap}
+.fab.mic{right:auto;left:18px;background:var(--card);color:var(--ac);border:2px solid var(--ac);font-size:26px}
+.ouvir{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 4px}
+.ouvir .bola{width:92px;height:92px;border-radius:50%;background:var(--ac);color:var(--ac-ink);font-size:40px;display:grid;place-items:center}
+.ouvir .bola.on{animation:pulsa 1.2s ease-in-out infinite}
+@keyframes pulsa{0%,100%{box-shadow:0 0 0 0 rgba(47,111,94,.45)}50%{box-shadow:0 0 0 18px rgba(47,111,94,0)}}
+.ouvir .st{font-weight:700}
+.ex{font-size:13px;color:var(--muted);text-align:center}
+#voz-txt{font-size:17px;text-align:center}
 .carregando{opacity:.55;pointer-events:none}
 </style>
 </head>
@@ -219,6 +229,7 @@ nav button.on{color:var(--ac)}
   </main>
 
   <button class="fab" id="fab" aria-label="Adicionar">+</button>
+  <button class="fab mic" id="fab-mic" aria-label="Lançar falando" hidden>🎤</button>
 
   <nav>
     <button data-v="agenda" class="on"><span class="i">📅</span>Agenda</button>
@@ -288,10 +299,25 @@ nav button.on{color:var(--ac)}
   <p class="muted" style="text-align:center;font-size:12px;margin-top:16px">v<span id="versao"></span></p>
 </div></div>
 
-<div class="aviso" id="aviso"></div>
+<!-- Folha: lançar falando -->
+<div class="veu" id="s-voz"><div class="folha">
+  <div class="puxa"></div>
+  <div class="ouvir">
+    <button class="bola" id="voz-bola" type="button" aria-label="Falar">🎤</button>
+    <div class="st" id="voz-st">Toque para falar</div>
+    <div class="ex">"gastei 50 reais no mercado" · "recebi 200 de freela" · "uber 18 e 90 ontem"</div>
+  </div>
+  <form id="f-voz">
+    <input id="voz-txt" autocomplete="off" placeholder="ou digite aqui">
+    <div class="acoes"><button class="btn" type="submit">Lançar</button></div>
+    <div class="err" id="voz-err"></div>
+  </form>
+</div></div>
+
+<div class="aviso" id="aviso"><span id="aviso-t"></span><button id="aviso-b" hidden></button></div>
 
 <script>
-const VERSAO = '1';
+const VERSAO = '2';
 const SB_URL = 'https://pvhoumlovxjlqvmchobv.supabase.co';
 const SB_KEY = 'sb_publishable_qvaNLaOJjn3i43dnzww43Q_ape3VFsV';
 const sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}});
@@ -314,7 +340,12 @@ const nomeMes = (a, m) => maiusc(new Date(a, m, 1).toLocaleDateString('pt-BR', {
 const nomeDia = s => maiusc(deISO(s).toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'}));
 
 let avisoT;
-function aviso(t) { const a = $('aviso'); a.textContent = t; a.classList.add('on'); clearTimeout(avisoT); avisoT = setTimeout(() => a.classList.remove('on'), 2400); }
+function aviso(t, acao, fn) {
+  const a = $('aviso'), b = $('aviso-b');
+  $('aviso-t').textContent = t; b.hidden = !acao; b.textContent = acao || '';
+  b.onclick = () => { a.classList.remove('on'); fn && fn(); };
+  a.classList.add('on'); clearTimeout(avisoT); avisoT = setTimeout(() => a.classList.remove('on'), acao ? 6000 : 2400);
+}
 
 const S = {
   eu: null,            // usuário logado
@@ -431,6 +462,7 @@ function irPara(v) {
   ['agenda', 'gastos', 'compart'].forEach(x => $('v-' + x).hidden = x !== v);
   $('titulo').textContent = TIT[v];
   $('fab').hidden = v === 'compart';
+  $('fab-mic').hidden = v !== 'gastos';
   $('b-hoje').hidden = v === 'compart';
   desenharEspacos();
   carregarView();
@@ -629,6 +661,154 @@ $('lc-del').onclick = async () => {
   if (error) { $('lc-err').textContent = 'Não foi possível excluir.'; return; }
   fechar('s-lc'); aviso('Excluído'); carregarGastos();
 };
+
+/* ---------- Lançar falando ---------- */
+const NUMS = {zero:0,um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,treze:13,quatorze:14,catorze:14,quinze:15,
+  dezesseis:16,dezessete:17,dezoito:18,dezenove:19,vinte:20,trinta:30,quarenta:40,cinquenta:50,sessenta:60,setenta:70,oitenta:80,noventa:90,cem:100,cento:100,
+  duzentos:200,duzentas:200,trezentos:300,trezentas:300,quatrocentos:400,quinhentos:500,seiscentos:600,setecentos:700,oitocentos:800,novecentos:900,mil:1000};
+const semAcento = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+function palavrasParaNumeros(t) { // "cento e vinte e cinco reais" -> "125 reais"
+  const tk = t.split(/(\s+)/), out = []; let i = 0;
+  while (i < tk.length) {
+    const w = semAcento(tk[i]);
+    if (NUMS[w] === undefined) { out.push(tk[i]); i++; continue; }
+    let total = 0, cur = 0, j = i, ult = i, ultimo = Infinity;
+    while (j < tk.length) {
+      const x = semAcento(tk[j]);
+      if (/^\s+$/.test(tk[j])) { j++; continue; }
+      if (NUMS[x] !== undefined) {
+        if (x === 'mil') { total += (cur || 1) * 1000; cur = 0; ultimo = 1000; }
+        else { if (NUMS[x] >= ultimo && ultimo < 1000) break; cur += NUMS[x]; ultimo = NUMS[x]; }
+        ult = j; j++; continue;
+      }
+      if (x === 'e') {
+        let k = j + 1; while (k < tk.length && /^\s+$/.test(tk[k])) k++;
+        const nx = k < tk.length ? NUMS[semAcento(tk[k])] : undefined;
+        if (nx !== undefined && (nx < ultimo || ultimo >= 1000) && semAcento(tk[k]) !== 'mil') { j = k; continue; }
+      }
+      break;
+    }
+    const grupo = tk.slice(i, ult + 1).map(semAcento).filter(x => x.trim() && x !== 'e');
+    if (grupo.every(x => x === 'um' || x === 'uma')) {
+      let k = ult + 1; while (k < tk.length && /^\s+$/.test(tk[k])) k++;
+      const prox = k < tk.length ? semAcento(tk[k]) : '';
+      if (!/^(reais|real|mil|centavos?|conto|pila)/.test(prox)) { out.push(tk[i]); i++; continue; }
+    }
+    out.push(String(total + cur)); i = ult + 1;
+  }
+  return out.join('');
+}
+function numBR(s) {
+  s = s.trim();
+  if (/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(s)) return parseFloat(s.replace(/\./g, '').replace(',', '.'));
+  if (/,\d{1,2}$/.test(s)) return parseFloat(s.replace(/\./g, '').replace(',', '.'));
+  if (/^\d+\.\d{1,2}$/.test(s)) return parseFloat(s);
+  return parseFloat(s.replace(/[.,]/g, ''));
+}
+const PALAVRAS_CAT = [
+  ['Alimentação', /\b(ifood|i food|lanche|lanchonete|restaurante|padaria|pizza|pizzaria|almoco|janta|jantar|cafe|hamburguer|acai|sorvete|marmita|delivery|mcdonalds|burger|pastel|churrasco|bar)\b/],
+  ['Mercado', /\b(mercado|supermercado|atacadao|assai|carrefour|feira|hortifruti|acougue|sacolao|compras do mes)\b/],
+  ['Transporte', /\b(uber|99|taxi|gasolina|combustivel|etanol|alcool|diesel|posto|onibus|metro|passagem|estacionamento|pedagio|oficina|mecanico|pneu|carro|moto)\b/],
+  ['Contas', /\b(luz|energia|agua|internet|telefone|celular|gas|boleto|fatura|cartao|conta|iptu|ipva|seguro|recarga)\b/],
+  ['Casa', /\b(aluguel|condominio|casa|movel|moveis|limpeza|material|reforma|faxina|diarista|eletro)\b/],
+  ['Saúde', /\b(farmacia|remedio|remedios|medico|consulta|dentista|exame|exames|plano de saude|hospital|academia|drogaria)\b/],
+  ['Lazer', /\b(cinema|show|viagem|netflix|spotify|festa|passeio|ingresso|jogo|cerveja|praia|streaming)\b/],
+  ['Compras', /\b(roupa|roupas|sapato|tenis|loja|shopee|amazon|mercado livre|shein|presente|magalu|perfume)\b/],
+  ['Educação', /\b(escola|curso|faculdade|livro|livros|mensalidade|material escolar|apostila)\b/]
+];
+const RECEITA = /\b(recebi|receber|ganhei|lucro|lucrei|salario|entrada|entrou|vendi|venda|vendas|receita|caiu na conta|me pagaram|me pagou|freela|bico|reembolso)\b/;
+function entenderFrase(frase) {
+  const t = palavrasParaNumeros(' ' + frase + ' ').replace(/\s+/g, ' ');
+  const s = semAcento(t);
+  const r = {tipo: RECEITA.test(s) ? 'receita' : 'despesa', valor: null, parc: 1, porParcela: false, data: hojeISO(), desc: '', cat: 'Outros'};
+  let resto = t;
+  const corta = (ini, len) => { resto = resto.slice(0, ini) + ' '.repeat(len) + resto.slice(ini + len); };
+  let m = semAcento(resto).match(/(?:em\s+)?(\d{1,2})\s*(?:x|vezes|parcelas)\b(\s+de\b)?/);
+  if (m && +m[1] >= 2 && +m[1] <= 24) { r.parc = +m[1]; r.porParcela = !!m[2]; corta(m.index, m[0].length - (m[2] ? m[2].length : 0)); }
+  const d = new Date();
+  if (m = semAcento(resto).match(/\banteontem\b/)) { d.setDate(d.getDate() - 2); corta(m.index, m[0].length); }
+  else if (m = semAcento(resto).match(/\bontem\b/)) { d.setDate(d.getDate() - 1); corta(m.index, m[0].length); }
+  else if (m = semAcento(resto).match(/\bhoje\b/)) { corta(m.index, m[0].length); }
+  else if (m = semAcento(resto).match(/\bdia (\d{1,2})\b/)) { const dd = +m[1]; if (dd >= 1 && dd <= 31) { d.setDate(Math.min(dd, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); corta(m.index, m[0].length); } }
+  r.data = iso(d);
+  const pats = [/r\$\s*(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:[.,]\d{1,2})?)(?:\s*e\s*(\d{1,2})\s*centavos?)?/i,
+    /(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:[.,]\d{1,2})?)\s*(?:reais|real|conto|contos|pila|pilas)\b(?:\s*e\s*(\d{1,2})(?:\s*centavos?)?)?/i,
+    /(?:^|\s)(\d+)\s+e\s+(\d{1,2})(?:\s*centavos?)?(?=\s|$)/i,
+    /(?:^|\s)(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:,\d{1,2})?)(?=\s|$)/];
+  for (const p of pats) {
+    const mm = resto.match(p);
+    if (mm) { r.valor = Math.round((numBR(mm[1]) + (mm[2] ? +mm[2] / 100 : 0)) * 100) / 100; resto = resto.replace(mm[0], ' '); break; }
+  }
+  let desc = semAcento(resto).replace(/\b(lancar|lanca|lance|adicionar|adiciona|anota|anotar|registra|registrar|coloca|colocar|gastei|gasto|paguei|pago|comprei|compra de|fiz|foi|deu|recebi|ganhei|lucrei|entrou|caiu na conta|me pagaram|me pagou|reais|real|conto|contos|pila|pilas|centavos?|valor|no pix|pix|no debito|debito|no credito|credito|no cartao|cartao|em dinheiro|dinheiro|de|do|da|dos|das|com|no|na|nos|nas|em|pro|pra|para|o|a|os|as|um|uma|e|que|eu|agora|vezes|parcelas)\b/g, ' ')
+    .replace(/[.,;:!?$]/g, ' ').replace(/\s+/g, ' ').trim();
+  const orig = resto.replace(/[.,;:!?$]/g, ' ').split(/\s+/).filter(Boolean);
+  desc = desc ? desc.split(' ').map(k => orig.find(o => semAcento(o) === k) || k).join(' ') : '';
+  r.desc = desc ? desc.charAt(0).toUpperCase() + desc.slice(1) : '';
+  if (r.tipo === 'receita') r.cat = /salario|holerite/.test(s) ? 'Salário' : /freela|bico|extra|lucro|lucrei|vend|reembolso/.test(s) ? 'Extra' : 'Outros';
+  else { const hit = PALAVRAS_CAT.find(([, re]) => re.test(semAcento(r.desc)) || re.test(s)); r.cat = hit ? hit[0] : 'Outros'; }
+  if (!r.desc) r.desc = r.tipo === 'receita' ? 'Entrada' : r.cat;
+  return r;
+}
+const addMes = (dataISO, n) => { const d = deISO(dataISO), dia = d.getDate(); const x = new Date(d.getFullYear(), d.getMonth() + n, 1); x.setDate(Math.min(dia, new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate())); return iso(x); };
+async function lancarFrase(frase) {
+  frase = String(frase || '').trim(); if (!frase) return;
+  const r = entenderFrase(frase);
+  if (!(r.valor > 0)) { // sem valor: abre o formulário preenchido para completar
+    fechar('s-voz'); abrirLc(null); setTipo(r.tipo); lcCat = r.cat; desenharCats();
+    $('lc-desc').value = r.desc; $('lc-data').value = r.data;
+    $('lc-err').textContent = 'Não entendi o valor. Digite e toque em Salvar.';
+    return;
+  }
+  const cent = Math.round(r.valor * 100), vParc = r.parc > 1 && !r.porParcela ? Math.floor(cent / r.parc) : cent;
+  const linhas = [];
+  for (let i = 0; i < r.parc; i++) {
+    const v = r.parc > 1 && !r.porParcela && i === r.parc - 1 ? cent - vParc * (r.parc - 1) : vParc;
+    linhas.push({dono:S.espaco, tipo:r.tipo, valor:v / 100, categoria:r.cat, data:addMes(r.data, i),
+      descricao:(r.parc > 1 ? `${r.desc} (${i + 1}/${r.parc})` : r.desc).slice(0, 120)});
+  }
+  const {data, error} = await sb.from('juntos_lancamentos').insert(linhas).select('id');
+  if (error) { $('voz-err').textContent = 'Não foi possível lançar.'; return; }
+  fechar('s-voz');
+  const d = deISO(r.data); S.gAno = d.getFullYear(); S.gMes = d.getMonth();
+  await carregarGastos();
+  const ids = (data || []).map(x => x.id);
+  aviso(`${r.tipo === 'receita' ? '+' : '−'} ${r.parc > 1 ? r.parc + 'x de ' + brl(vParc / 100) : brl(r.valor)} · ${r.desc} · ${r.cat}`, 'Desfazer', async () => {
+    const {error} = await sb.from('juntos_lancamentos').delete().in('id', ids);
+    if (error) { aviso('Não foi possível desfazer'); return; }
+    aviso('Desfeito'); carregarGastos();
+  });
+}
+const Reconhecedor = window.SpeechRecognition || window.webkitSpeechRecognition;
+let REC = null, OUVINDO = false;
+function ouvir() {
+  $('voz-err').textContent = '';
+  if (!Reconhecedor) { $('voz-st').textContent = 'Use o 🎤 do teclado'; $('voz-txt').focus(); return; }
+  if (OUVINDO) { REC && REC.stop(); return; }
+  REC = new Reconhecedor(); REC.lang = 'pt-BR'; REC.interimResults = true; REC.continuous = false;
+  let final = '';
+  REC.onstart = () => { OUVINDO = true; $('voz-bola').classList.add('on'); $('voz-st').textContent = 'Ouvindo…'; };
+  REC.onresult = ev => {
+    let txt = '';
+    for (let i = ev.resultIndex; i < ev.results.length; i++) { txt += ev.results[i][0].transcript; if (ev.results[i].isFinal) final += ev.results[i][0].transcript; }
+    $('voz-txt').value = final || txt;
+  };
+  REC.onerror = ev => {
+    $('voz-err').textContent = ev.error === 'not-allowed' || ev.error === 'service-not-allowed' ? 'Microfone bloqueado. Libere nas configurações do navegador ou use o 🎤 do teclado.'
+      : ev.error === 'no-speech' ? 'Não ouvi nada. Toque e fale de novo.' : 'Não consegui ouvir. Tente de novo ou digite.';
+  };
+  REC.onend = () => {
+    OUVINDO = false; $('voz-bola').classList.remove('on'); $('voz-st').textContent = 'Toque para falar';
+    const t = (final || $('voz-txt').value).trim();
+    if (t && $('s-voz').classList.contains('on')) lancarFrase(t);
+  };
+  try { REC.start(); } catch (e) { $('voz-err').textContent = 'Não consegui abrir o microfone.'; }
+}
+$('fab-mic').onclick = () => { $('voz-txt').value = ''; $('voz-err').textContent = ''; abrir('s-voz'); ouvir(); };
+$('voz-bola').onclick = ouvir;
+$('f-voz').onsubmit = e => { e.preventDefault(); if (OUVINDO && REC) { REC.onend = null; REC.abort(); OUVINDO = false; $('voz-bola').classList.remove('on'); } lancarFrase($('voz-txt').value); };
+// Fechar a folha para de ouvir sem lançar.
+new MutationObserver(() => { if (!$('s-voz').classList.contains('on') && OUVINDO && REC) { REC.onend = null; REC.abort(); OUVINDO = false; $('voz-bola').classList.remove('on'); $('voz-st').textContent = 'Toque para falar'; } })
+  .observe($('s-voz'), {attributes:true, attributeFilter:['class']});
 
 /* ---------- Compartilhar ---------- */
 const novo = {agenda:true, gastos:true};
