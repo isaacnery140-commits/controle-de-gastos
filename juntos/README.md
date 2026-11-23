@@ -20,6 +20,14 @@ Endereço: https://isaacnery140-commits.github.io/controle-de-gastos/juntos/
 
 Na aba Gastos, o botão 🎤 (canto esquerdo) ouve a frase e lança sozinho, com Desfazer no aviso. Entende valor por extenso ou em número ("cento e vinte e cinco reais", "18 e 90"), entrada ou saída ("recebi", "ganhei"), data ("ontem", "anteontem", "dia 10"), parcelas ("em 3 vezes") e escolhe a categoria pelas palavras ("uber" → Transporte, "farmácia" → Saúde). Sem valor, abre o formulário preenchido. Onde o navegador não libera o reconhecimento de voz, dá para usar o 🎤 do teclado no mesmo campo.
 
+## Avisos e notificações
+
+- Cada compromisso tem o campo **Avisar** (na hora, 10 min, 30 min, 1 h, 2 h, 1 ou 2 dias antes). Sem hora marcada, o aviso conta a partir das 8h do dia.
+- Com as notificações ativadas (botão 🔔 no topo ou no menu ☰), o celular recebe:
+  - o lembrete do compromisso, para todos que enxergam aquela agenda;
+  - um aviso de tudo que for criado, alterado, concluído ou excluído na agenda ou nos gastos, para as outras pessoas que têm acesso àquela parte (quem fez a mudança não recebe).
+- Peças: tabelas `juntos_config` e `juntos_push_subs`, gatilhos `juntos_notificar` nas tabelas, tarefa `juntos-lembretes` (pg_cron, a cada minuto) e a Edge Function `juntos-push` (`functions/juntos-push`). SQL em `supabase_002_avisos.sql`.
+
 ## Play Store
 
 O app é um PWA (manifest + service worker), pronto para virar um app Android pelo **PWABuilder** (pwabuilder.com → colar o endereço → Android → gerar o pacote .aab).

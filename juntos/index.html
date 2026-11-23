@@ -140,6 +140,9 @@ nav button.on{color:var(--ac)}
 .acoes.duas{grid-template-columns:1fr 1fr}
 .aviso{position:fixed;left:50%;bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 90px);transform:translateX(-50%);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;opacity:0;transition:opacity .2s;pointer-events:none}
 .aviso.on{opacity:1;pointer-events:auto}
+.notif{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;margin-bottom:12px;border-radius:14px;background:var(--ac-soft);color:var(--ac);font-weight:700;text-align:left}
+.notif span{flex:1}
+.ev .sino{font-size:13px;color:var(--muted);white-space:nowrap}
 .aviso{display:flex;align-items:center;gap:14px}
 .aviso button{color:var(--ac-soft);font-weight:800;padding:4px 2px;white-space:nowrap}
 .fab.mic{right:auto;left:18px;background:var(--card);color:var(--ac);border:2px solid var(--ac);font-size:26px}
@@ -187,6 +190,7 @@ nav button.on{color:var(--ac)}
   </div>
 
   <main>
+    <button class="notif" id="b-notif" hidden><b>🔔</b><span>Ativar notificações</span>›</button>
     <!-- Agenda -->
     <div id="v-agenda">
       <div class="card">
@@ -249,6 +253,17 @@ nav button.on{color:var(--ac)}
       <div><label for="ev-data">Dia</label><input id="ev-data" type="date" required></div>
       <div><label for="ev-hora">Hora</label><input id="ev-hora" type="time"></div>
     </div>
+    <label for="ev-aviso">Avisar</label>
+    <select id="ev-aviso">
+      <option value="">Sem aviso</option>
+      <option value="0">Na hora</option>
+      <option value="10">10 minutos antes</option>
+      <option value="30">30 minutos antes</option>
+      <option value="60">1 hora antes</option>
+      <option value="120">2 horas antes</option>
+      <option value="1440">1 dia antes</option>
+      <option value="2880">2 dias antes</option>
+    </select>
     <label for="ev-local">Onde</label>
     <input id="ev-local" maxlength="120" autocomplete="off">
     <label for="ev-notas">Anotações</label>
@@ -294,6 +309,7 @@ nav button.on{color:var(--ac)}
   <input id="conta-novo-nome" maxlength="40">
   <div class="acoes">
     <button class="btn sec" id="conta-salvar">Salvar nome</button>
+    <button class="btn sec" id="conta-notif">🔔 Ativar notificações</button>
     <button class="btn del" id="conta-sair">Sair da conta</button>
   </div>
   <p class="muted" style="text-align:center;font-size:12px;margin-top:16px">v<span id="versao"></span></p>
@@ -317,7 +333,7 @@ nav button.on{color:var(--ac)}
 <div class="aviso" id="aviso"><span id="aviso-t"></span><button id="aviso-b" hidden></button></div>
 
 <script>
-const VERSAO = '2';
+const VERSAO = '3';
 const SB_URL = 'https://pvhoumlovxjlqvmchobv.supabase.co';
 const SB_KEY = 'sb_publishable_qvaNLaOJjn3i43dnzww43Q_ape3VFsV';
 const sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}});
@@ -404,9 +420,12 @@ async function iniciar() {
   S.nome = perfil?.nome || S.eu.user_metadata?.nome || email.split('@')[0];
   sb.from('juntos_perfis').upsert({id:S.eu.id, nome:S.nome.slice(0, 40), email}).then(() => {});
   S.espaco = localStorage.getItem('juntos.espaco.' + S.eu.id) || S.eu.id;
-  const v = localStorage.getItem('juntos.view');
+  const v = location.hash.slice(1) || localStorage.getItem('juntos.view');
+  if (location.hash) history.replaceState(null, '', location.pathname);
   await carregarCompart();
   irPara(['agenda', 'gastos', 'compart'].includes(v) ? v : 'agenda');
+  notifEstado();
+  if (temPush() && Notification.permission === 'granted') inscreverPush(true);
 }
 
 /* ---------- Espaços (meu + de quem compartilhou comigo) ---------- */
@@ -529,10 +548,12 @@ function desenharDia() {
   $('dia-lista').innerHTML = evs.length ? evs.map(e => `
     <button class="ev${e.feito ? ' feito' : ''}" data-id="${e.id}">
       <div class="h">${e.hora ? esc(e.hora) : '—'}</div>
-      <div><div class="t">${e.feito ? '✓ ' : ''}${esc(e.titulo)}</div>${e.local || e.notas ? `<div class="s">${esc([e.local, e.notas].filter(Boolean).join(' · '))}</div>` : ''}</div>
+      <div style="flex:1"><div class="t">${e.feito ? '✓ ' : ''}${esc(e.titulo)}</div>${e.local || e.notas ? `<div class="s">${esc([e.local, e.notas].filter(Boolean).join(' · '))}</div>` : ''}</div>
+      ${e.aviso_min != null && !e.feito ? `<div class="sino">🔔 ${esc(textoAviso(e.aviso_min))}</div>` : ''}
     </button>`).join('') : '<div class="vazio">Nada marcado</div>';
   $('dia-lista').querySelectorAll('.ev').forEach(b => b.onclick = () => abrirEv(S.eventos.find(e => e.id === b.dataset.id)));
 }
+const textoAviso = m => m === 0 ? 'na hora' : m < 60 ? m + ' min' : m < 1440 ? (m / 60) + ' h' : (m / 1440) + ' d';
 let evAtual = null;
 function abrirEv(e) {
   evAtual = e;
@@ -542,6 +563,7 @@ function abrirEv(e) {
   $('ev-hora').value = e?.hora || '';
   $('ev-local').value = e?.local || '';
   $('ev-notas').value = e?.notas || '';
+  $('ev-aviso').value = e ? String(e.aviso_min ?? '') : '30';
   $('ev-extra').hidden = !e;
   $('ev-feito').textContent = e?.feito ? 'Reabrir' : 'Concluir';
   $('ev-err').textContent = '';
@@ -550,7 +572,7 @@ function abrirEv(e) {
 }
 $('f-ev').onsubmit = async ev => {
   ev.preventDefault();
-  const linha = {titulo:$('ev-titulo').value.trim(), data:$('ev-data').value, hora:$('ev-hora').value || null, local:$('ev-local').value.trim(), notas:$('ev-notas').value.trim()};
+  const linha = {titulo:$('ev-titulo').value.trim(), data:$('ev-data').value, hora:$('ev-hora').value || null, local:$('ev-local').value.trim(), notas:$('ev-notas').value.trim(), aviso_min:$('ev-aviso').value === '' ? null : Number($('ev-aviso').value)};
   if (!linha.titulo) return;
   const f = $('f-ev'); f.classList.add('carregando');
   const {error} = evAtual
@@ -891,7 +913,42 @@ $('conta-salvar').onclick = async () => {
   if (error) { aviso('Não foi possível salvar'); return; }
   S.nome = n; $('conta-nome').textContent = n; aviso('Nome salvo');
 };
-$('conta-sair').onclick = async () => { fechar('s-conta'); await sb.auth.signOut(); };
+$('conta-sair').onclick = async () => {
+  fechar('s-conta');
+  try { const reg = await navigator.serviceWorker?.getRegistration(); const sub = await reg?.pushManager?.getSubscription(); if (sub) await sb.rpc('juntos_desinscrever', {p_endpoint:sub.endpoint}); } catch (e) {}
+  await sb.auth.signOut();
+};
+
+/* ---------- Notificações ---------- */
+const VAPID = 'BA9X_Rxb5tOwQmHzXutZOrgl_O6tFBK7ZkpzbpWuyEEtbaAxmHyssOtvXeSGpmXn4LaIF1sG4Zol8SagOn6KByM';
+const temPush = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+function notifEstado() {
+  const perm = temPush() ? Notification.permission : 'nada';
+  $('b-notif').hidden = perm !== 'default';
+  $('conta-notif').hidden = perm === 'granted' || perm === 'nada';
+  $('conta-notif').textContent = perm === 'denied' ? '🔕 Notificações bloqueadas no celular' : '🔔 Ativar notificações';
+}
+function chaveVapid() {
+  const p = '='.repeat((4 - VAPID.length % 4) % 4), raw = atob((VAPID + p).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from(raw, c => c.charCodeAt(0));
+}
+async function inscreverPush(quieto) {
+  try {
+    if (!temPush()) { if (!quieto) aviso('Este celular não aceita notificações por aqui'); return; }
+    if (Notification.permission === 'denied') { if (!quieto) aviso('Libere as notificações do app nas configurações do celular'); return; }
+    if (Notification.permission !== 'granted' && (await Notification.requestPermission()) !== 'granted') { notifEstado(); return; }
+    const reg = await navigator.serviceWorker.register('sw.js'); await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:chaveVapid()});
+    const j = sub.toJSON();
+    const {error} = await sb.rpc('juntos_inscrever', {p_endpoint:j.endpoint, p_p256dh:j.keys.p256dh, p_auth:j.keys.auth});
+    if (error) throw error;
+    if (!quieto) aviso('Notificações ativadas');
+  } catch (e) { if (!quieto) aviso('Não foi possível ativar as notificações'); }
+  notifEstado();
+}
+$('b-notif').onclick = () => inscreverPush(false);
+$('conta-notif').onclick = () => inscreverPush(false);
+window.addEventListener('hashchange', () => { const v = location.hash.slice(1); if (S.eu && ['agenda', 'gastos'].includes(v)) { history.replaceState(null, '', location.pathname); irPara(v); } });
 
 /* ---------- Atualizar sozinho ---------- */
 document.addEventListener('visibilitychange', () => { if (!document.hidden && S.eu) carregarCompart().then(carregarView); });

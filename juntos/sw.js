@@ -1,5 +1,5 @@
 // Guarda os arquivos do app para abrir rápido e como app instalado. Os dados sempre vêm do servidor.
-const CACHE = "juntos-v2";
+const CACHE = "juntos-v3";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 const LIB = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
 self.addEventListener("install", e => {
@@ -19,3 +19,21 @@ self.addEventListener("fetch", e => {
       .catch(() => caches.match(e.request).then(r => r || caches.match("./index.html")))
   );
 });
+
+// Notificações: mostra o aviso e abre o app na aba certa ao tocar.
+self.addEventListener("push", e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Juntos", {
+    body: d.body || "", icon: "icon-192.png", badge: "icon-192.png", data: { url: d.url || "./" }, vibrate: [120, 60, 120]
+  }));
+});
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "./";
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+    for (const c of list) if (c.url.includes("/juntos/") && "focus" in c) { c.navigate(url).catch(() => {}); return c.focus(); }
+    return self.clients.openWindow(url);
+  }));
+});
+// Se o celular trocar a inscrição, o app refaz sozinho na próxima vez que abrir.
