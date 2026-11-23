@@ -33,6 +33,11 @@ Na aba Gastos, o botão 🎤 (canto esquerdo) ouve a frase e mostra o que entend
   - um aviso de tudo que for criado, alterado, concluído ou excluído na agenda ou nos gastos, para as outras pessoas que têm acesso àquela parte (quem fez a mudança não recebe).
 - Peças: tabelas `juntos_config` e `juntos_push_subs`, gatilhos `juntos_notificar` nas tabelas, tarefa `juntos-lembretes` (pg_cron, a cada minuto) e a Edge Function `juntos-push` (`functions/juntos-push`). SQL em `supabase_002_avisos.sql`.
 
+## Privacidade e exclusão de conta (exigências da Play Store)
+
+- Política de privacidade: `privacidade.html` (link na tela de login e no menu ☰).
+- Excluir conta: no app (menu ☰ → Excluir conta) e pela internet em `excluir-conta.html`. Usa a função `juntos_excluir_conta` (`supabase_004_excluir_conta.sql`): apaga todos os dados do Juntos da pessoa; o login só é apagado se ela não usar o app Controle de Gastos, que divide o mesmo login.
+
 ## Play Store
 
 O app é um PWA (manifest + service worker), pronto para virar um app Android pelo **PWABuilder** (pwabuilder.com → colar o endereço → Android → gerar o pacote .aab).

@@ -1,5 +1,5 @@
 // Guarda os arquivos do app para abrir rápido e como app instalado. Os dados sempre vêm do servidor.
-const CACHE = "juntos-v5";
+const CACHE = "juntos-v6";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./fatura.js"];
 const LIB = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
 self.addEventListener("install", e => {
@@ -16,7 +16,7 @@ self.addEventListener("fetch", e => {
   e.respondWith(
     fetch(e.request, { cache: "no-cache" })
       .then(r => { if (r.ok) { const c = r.clone(); caches.open(CACHE).then(x => x.put(e.request, c)); } return r; })
-      .catch(() => caches.match(e.request).then(r => r || caches.match("./index.html")))
+      .catch(() => caches.match(e.request).then(r => r || (e.request.mode === "navigate" ? caches.match("./index.html") : Response.error())))
   );
 });
 

@@ -224,6 +224,7 @@ body.travado{overflow:hidden}
     <div class="err" id="l-err"></div>
   </form>
   <button class="troca" id="l-troca" type="button">Criar conta</button>
+  <a class="lnk" href="privacidade.html" style="font-size:13px;font-weight:500">Política de privacidade</a>
 </section>
 
 <!-- App -->
@@ -361,6 +362,8 @@ body.travado{overflow:hidden}
     <button class="btn sec" id="conta-notif">🔔 Ativar notificações</button>
     <button class="btn del" id="conta-sair">Sair da conta</button>
   </div>
+  <a class="lnk" href="privacidade.html" target="_blank" rel="noopener">Política de privacidade</a>
+  <button class="lnk" id="conta-excluir" type="button" style="color:var(--out)">Excluir conta</button>
   <p class="muted" style="text-align:center;font-size:12px;margin-top:16px">v<span id="versao"></span></p>
 </div></div>
 
@@ -435,7 +438,7 @@ body.travado{overflow:hidden}
 <div class="aviso" id="aviso"><span id="aviso-t"></span><button id="aviso-b" hidden></button></div>
 
 <script>
-const VERSAO = '5';
+const VERSAO = '6';
 const SB_URL = 'https://pvhoumlovxjlqvmchobv.supabase.co';
 const SB_KEY = 'sb_publishable_qvaNLaOJjn3i43dnzww43Q_ape3VFsV';
 const sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}});
@@ -1060,6 +1063,18 @@ $('conta-sair').onclick = async () => {
   fechar('s-conta');
   try { const reg = await navigator.serviceWorker?.getRegistration(); const sub = await reg?.pushManager?.getSubscription(); if (sub) await sb.rpc('juntos_desinscrever', {p_endpoint:sub.endpoint}); } catch (e) {}
   await sb.auth.signOut();
+};
+
+$('conta-excluir').onclick = async () => {
+  const t = prompt('Isso apaga para sempre sua agenda, seus gastos, faturas e compartilhamentos do Juntos.\n\nDigite EXCLUIR para confirmar:');
+  if (!t || t.trim().toUpperCase() !== 'EXCLUIR') return;
+  try { const reg = await navigator.serviceWorker?.getRegistration(); const sub = await reg?.pushManager?.getSubscription(); if (sub) await sub.unsubscribe(); } catch (e) {}
+  const {error} = await sb.rpc('juntos_excluir_conta');
+  if (error) { aviso('Não foi possível excluir agora'); return; }
+  fechar('s-conta');
+  try { localStorage.removeItem('juntos.espaco.' + S.eu.id); } catch (e) {}
+  await sb.auth.signOut().catch(() => {});
+  aviso('Conta excluída');
 };
 
 /* ---------- Notificações ---------- */
