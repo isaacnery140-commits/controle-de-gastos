@@ -18,7 +18,12 @@ Endereço: https://isaacnery140-commits.github.io/controle-de-gastos/juntos/
 
 ## Lançar falando
 
-Na aba Gastos, o botão 🎤 (canto esquerdo) ouve a frase e lança sozinho, com Desfazer no aviso. Entende valor por extenso ou em número ("cento e vinte e cinco reais", "18 e 90"), entrada ou saída ("recebi", "ganhei"), data ("ontem", "anteontem", "dia 10"), parcelas ("em 3 vezes") e escolhe a categoria pelas palavras ("uber" → Transporte, "farmácia" → Saúde). Sem valor, abre o formulário preenchido. Onde o navegador não libera o reconhecimento de voz, dá para usar o 🎤 do teclado no mesmo campo.
+Na aba Gastos, o botão 🎤 (canto esquerdo) ouve a frase e mostra o que entendeu (valor, descrição, categoria, data) antes de lançar; dá para corrigir o texto ou tocar em Ajustar. Uma frase pode ter mais de um gasto ("pizza 60 e gasolina 100"). Entende valor por extenso ou em número ("cento e vinte e cinco reais", "18 e 90"), entrada ou saída ("recebi", "ganhei"), data ("ontem", "anteontem", "dia 10"), parcelas ("em 3 vezes") e escolhe a categoria pelas palavras ("uber" → Transporte, "farmácia" → Saúde). Sem valor, abre o formulário preenchido. Onde o navegador não libera o reconhecimento de voz, dá para usar o 🎤 do teclado no mesmo campo.
+
+## Fatura do cartão e relatório
+
+- **💳 Fatura** (aba Gastos): anexa o PDF da fatura (pede a senha se tiver), a planilha, o CSV/OFX do banco ou o texto colado. A leitura é a mesma do Controle de Gastos (`fatura.js`). Na conferência dá para escolher a categoria de cada compra (vale para a mesma loja), desmarcar itens e importar **cada compra** ou **só o total**. O pagamento da fatura anterior vem desmarcado e compras já importadas aparecem como "já importada". Os lançamentos entram no mês do vencimento; a lista guarda a data da compra. Remover a fatura apaga os lançamentos dela.
+- **📊 Relatório**: entradas, saídas e saldo do mês, comparação com o mês anterior, gastos por categoria com a média dos 3 meses anteriores, maiores gastos, faturas do mês e quem lançou. Compartilha como texto (WhatsApp etc.) ou salva em PDF.
 
 ## Avisos e notificações
 

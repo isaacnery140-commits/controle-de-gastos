@@ -140,10 +140,58 @@ nav button.on{color:var(--ac)}
 .acoes.duas{grid-template-columns:1fr 1fr}
 .aviso{position:fixed;left:50%;bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 90px);transform:translateX(-50%);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;opacity:0;transition:opacity .2s;pointer-events:none}
 .aviso.on{opacity:1;pointer-events:auto}
+.g-acoes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.g-acoes button{padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:15px}
+.arq{display:flex;align-items:center;justify-content:center;gap:8px;padding:18px;border:2px dashed var(--ac);border-radius:14px;color:var(--ac);font-weight:700;background:var(--ac-soft);margin-top:6px}
+.arq input{display:none}
+.lnk{display:block;width:100%;padding:12px;color:var(--ac);font-weight:600;text-align:center}
+.fx-item{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+.fx-item .m{flex:1;min-width:0} .fx-item .s{font-size:13px;color:var(--muted)}
+.fx-item .x{width:36px;height:36px;border-radius:10px;background:var(--out-soft);color:var(--out);font-weight:700}
+.tela{position:fixed;inset:0;z-index:25;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(10px + env(safe-area-inset-top)) 14px calc(110px + env(safe-area-inset-bottom))}
+.tela-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.tela-top h2{flex:1;margin:0;font-size:21px}
+body.travado{overflow:hidden}
+.modo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.modo label{margin:0;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);text-align:center;font-weight:700;color:var(--ink);font-size:14px}
+.modo input{display:none}
+.modo label:has(input:checked){border-color:var(--ac);background:var(--ac-soft);color:var(--ac)}
+.rv-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 2px 8px;font-size:14px;color:var(--muted)}
+.rv-bar button{color:var(--ac);font-weight:700}
+.rv-item{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+.rv-item.off{opacity:.5}
+.rv-item .ck{flex:none;width:24px;height:24px;border-radius:7px;border:2px solid var(--ac);color:var(--ac-ink);display:grid;place-items:center;font-size:14px;font-weight:800;margin-top:2px}
+.rv-item:not(.off) .ck{background:var(--ac)}
+.rv-item .m{flex:1;min-width:0}
+.rv-item .t{font-weight:600;word-break:break-word}
+.rv-item .s{font-size:13px;color:var(--muted)}
+.rv-item .dup{color:var(--warn,#a15c00);font-weight:700}
+.rv-item .v{font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rv-item select{margin-top:6px;padding:7px 10px;font-size:14px;border-radius:10px;width:auto;max-width:100%}
+.so-total .rv-item select{display:none}
+.rodape{position:fixed;left:0;right:0;bottom:0;z-index:26;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line)}
+.rl-linha{display:flex;justify-content:space-between;gap:10px;padding:7px 0;font-size:15px}
+.card.rl-linha{padding:14px}
+.rl-media{font-size:12px;color:var(--muted);margin-top:3px;text-align:right}
+.rl-acoes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.voz-prev{width:100%;margin-top:6px}
+.voz-item{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+.voz-item .b{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex:none}
+.voz-item .b.out{background:var(--out-soft)} .voz-item .b.in{background:var(--in-soft)}
+.voz-item .m{flex:1;min-width:0} .voz-item .t{font-weight:700} .voz-item .s{font-size:13px;color:var(--muted)}
+.voz-item .v{font-weight:800;white-space:nowrap}
+.voz-ouvi{font-size:13px;color:var(--muted);text-align:center;margin-top:4px}
+@media print{
+  body>*:not(#rel){display:none!important}
+  #rel{position:static;padding:0;overflow:visible}
+  #rel .tela-top button,#rel .rl-acoes,#rel .mes button{display:none!important}
+  .card{break-inside:avoid}
+}
 .notif{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;margin-bottom:12px;border-radius:14px;background:var(--ac-soft);color:var(--ac);font-weight:700;text-align:left}
 .notif span{flex:1}
 .ev .sino{font-size:13px;color:var(--muted);white-space:nowrap}
-.aviso{display:flex;align-items:center;gap:14px}
+.aviso{display:flex;align-items:center;gap:14px;width:max-content;max-width:92vw}
+.aviso span{flex:1}
 .aviso button{color:var(--ac-soft);font-weight:800;padding:4px 2px;white-space:nowrap}
 .fab.mic{right:auto;left:18px;background:var(--card);color:var(--ac);border:2px solid var(--ac);font-size:26px}
 .ouvir{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 4px}
@@ -204,6 +252,7 @@ nav button.on{color:var(--ac)}
     <!-- Gastos -->
     <div id="v-gastos" hidden>
       <div class="mes"><button id="g-ant" aria-label="Mês anterior">‹</button><b id="g-mes"></b><button id="g-prox" aria-label="Próximo mês">›</button></div>
+      <div class="g-acoes"><button id="b-fatura">💳 Fatura</button><button id="b-rel">📊 Relatório</button></div>
       <div class="resumo">
         <div class="card"><div class="k">Entradas</div><div class="v in" id="g-in">R$ 0,00</div></div>
         <div class="card"><div class="k">Saídas</div><div class="v out" id="g-out">R$ 0,00</div></div>
@@ -321,19 +370,72 @@ nav button.on{color:var(--ac)}
   <div class="ouvir">
     <button class="bola" id="voz-bola" type="button" aria-label="Falar">🎤</button>
     <div class="st" id="voz-st">Toque para falar</div>
-    <div class="ex">"gastei 50 reais no mercado" · "recebi 200 de freela" · "uber 18 e 90 ontem"</div>
+    <div class="ex" id="voz-ex">"mercado 50 reais" · "uber 18 e 90 ontem" · "pizza 60 e gasolina 100"</div>
   </div>
   <form id="f-voz">
-    <input id="voz-txt" autocomplete="off" placeholder="ou digite aqui">
-    <div class="acoes"><button class="btn" type="submit">Lançar</button></div>
+    <input id="voz-txt" autocomplete="off" placeholder="ou digite aqui" enterkeyhint="done">
+    <div class="voz-prev" id="voz-prev"></div>
+    <div class="acoes duas" id="voz-acoes" hidden>
+      <button class="btn sec" type="button" id="voz-ajustar">Ajustar</button>
+      <button class="btn" type="submit" id="voz-ok">Lançar</button>
+    </div>
     <div class="err" id="voz-err"></div>
   </form>
 </div></div>
 
+<!-- Folha: fatura -->
+<div class="veu" id="s-fat"><div class="folha">
+  <div class="puxa"></div>
+  <h3>💳 Fatura do cartão</h3>
+  <label class="arq"><input type="file" id="fx-arq" accept=".pdf,.csv,.ofx,.xls,.xlsx,.txt,application/pdf,text/csv">📎 Anexar fatura (PDF, planilha, CSV ou OFX)</label>
+  <div class="muted" id="fx-status" style="text-align:center;margin-top:8px"></div>
+  <div id="fx-senha-box" hidden>
+    <label for="fx-senha">Senha do PDF</label>
+    <div class="frase" style="display:flex;gap:8px"><input id="fx-senha" type="password" inputmode="numeric" autocomplete="off"><button class="btn" type="button" id="fx-ler-senha" style="width:auto;padding:0 18px">Abrir</button></div>
+  </div>
+  <button class="lnk" type="button" id="fx-colar">Colar o texto da fatura</button>
+  <div id="fx-colar-box" hidden>
+    <textarea id="fx-texto" rows="5" placeholder="12/11 IFOOD 45,90"></textarea>
+    <div class="acoes"><button class="btn sec" type="button" id="fx-ler-texto">Ler texto</button></div>
+  </div>
+  <div class="err" id="fx-err"></div>
+  <div class="sec-tit" id="fx-lista-tit" hidden>Faturas importadas</div>
+  <div id="fx-lista"></div>
+</div></div>
+
+<!-- Tela: conferir fatura -->
+<section class="tela" id="rev" hidden>
+  <div class="tela-top"><h2>Conferir fatura</h2><button class="ico-btn" id="rv-fechar" aria-label="Fechar">✕</button></div>
+  <div class="card">
+    <div class="dupla">
+      <div><label for="rv-cartao" style="margin-top:0">Cartão</label><input id="rv-cartao" maxlength="40" placeholder="Nubank"></div>
+      <div><label for="rv-venc" style="margin-top:0">Vencimento</label><input id="rv-venc" type="date"></div>
+    </div>
+    <div class="modo">
+      <label><input type="radio" name="rv-modo" value="itens" checked>Cada compra</label>
+      <label><input type="radio" name="rv-modo" value="total">Só o total</label>
+    </div>
+  </div>
+  <div class="rv-bar"><span id="rv-resumo"></span><button id="rv-todos" type="button">Marcar todos</button></div>
+  <div id="rv-lista"></div>
+  <div class="rodape"><button class="btn" id="rv-ok">Importar</button></div>
+</section>
+
+<!-- Tela: relatório -->
+<section class="tela" id="rel" hidden>
+  <div class="tela-top"><h2>📊 Relatório</h2><button class="ico-btn" id="rl-fechar" aria-label="Fechar">✕</button></div>
+  <div class="mes"><button id="rl-ant" aria-label="Mês anterior">‹</button><b id="rl-mes"></b><button id="rl-prox" aria-label="Próximo mês">›</button></div>
+  <div id="rl-corpo"></div>
+  <div class="rl-acoes" style="margin-top:14px">
+    <button class="btn sec" id="rl-share">Compartilhar</button>
+    <button class="btn sec" id="rl-print">Salvar PDF</button>
+  </div>
+</section>
+
 <div class="aviso" id="aviso"><span id="aviso-t"></span><button id="aviso-b" hidden></button></div>
 
 <script>
-const VERSAO = '3';
+const VERSAO = '4';
 const SB_URL = 'https://pvhoumlovxjlqvmchobv.supabase.co';
 const SB_KEY = 'sb_publishable_qvaNLaOJjn3i43dnzww43Q_ape3VFsV';
 const sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}});
@@ -761,7 +863,7 @@ function entenderFrase(frase) {
     const mm = resto.match(p);
     if (mm) { r.valor = Math.round((numBR(mm[1]) + (mm[2] ? +mm[2] / 100 : 0)) * 100) / 100; resto = resto.replace(mm[0], ' '); break; }
   }
-  let desc = semAcento(resto).replace(/\b(lancar|lanca|lance|adicionar|adiciona|anota|anotar|registra|registrar|coloca|colocar|gastei|gasto|paguei|pago|comprei|compra de|fiz|foi|deu|recebi|ganhei|lucrei|entrou|caiu na conta|me pagaram|me pagou|reais|real|conto|contos|pila|pilas|centavos?|valor|no pix|pix|no debito|debito|no credito|credito|no cartao|cartao|em dinheiro|dinheiro|de|do|da|dos|das|com|no|na|nos|nas|em|pro|pra|para|o|a|os|as|um|uma|e|que|eu|agora|vezes|parcelas)\b/g, ' ')
+  let desc = semAcento(resto).replace(/\b(lancar|lanca|lance|adicionar|adiciona|anota|anotar|registra|registrar|coloca|colocar|gastei|gasto|paguei|pago|comprei|compra de|fiz|foi|deu|recebi|ganhei|lucrei|entrou|caiu na conta|me pagaram|me pagou|reais|real|conto|contos|pila|pilas|centavos?|valor|no pix|pix|no debito|debito|no credito|credito|no cartao|cartao|em dinheiro|dinheiro|de|do|da|dos|das|com|no|na|nos|nas|em|pro|pra|para|o|a|os|as|um|uma|e|que|eu|agora|vezes|parcelas|ai|la|entao|tipo|despesa|saida|gastos?|lancamento|por favor|favor|mais|tambem)\b/g, ' ')
     .replace(/[.,;:!?$]/g, ' ').replace(/\s+/g, ' ').trim();
   const orig = resto.replace(/[.,;:!?$]/g, ' ').split(/\s+/).filter(Boolean);
   desc = desc ? desc.split(' ').map(k => orig.find(o => semAcento(o) === k) || k).join(' ') : '';
@@ -772,64 +874,105 @@ function entenderFrase(frase) {
   return r;
 }
 const addMes = (dataISO, n) => { const d = deISO(dataISO), dia = d.getDate(); const x = new Date(d.getFullYear(), d.getMonth() + n, 1); x.setDate(Math.min(dia, new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate())); return iso(x); };
-async function lancarFrase(frase) {
-  frase = String(frase || '').trim(); if (!frase) return;
-  const r = entenderFrase(frase);
-  if (!(r.valor > 0)) { // sem valor: abre o formulário preenchido para completar
-    fechar('s-voz'); abrirLc(null); setTipo(r.tipo); lcCat = r.cat; desenharCats();
-    $('lc-desc').value = r.desc; $('lc-data').value = r.data;
-    $('lc-err').textContent = 'Não entendi o valor. Digite e toque em Salvar.';
-    return;
+// Uma frase pode ter mais de um gasto: "pizza 60 e gasolina 100".
+function separarFrase(frase) {
+  const t = palavrasParaNumeros(' ' + frase + ' ').replace(/\s+/g, ' ').trim();
+  const partes = t.split(/\s+(?:e|mais|e também|também|tambem)\s+/i);
+  const out = []; let atual = '';
+  for (const p of partes) {
+    // só separa se o pedaço anterior já tem valor e não termina em número ("18 e 90" fica junto)
+    if (atual && /\d/.test(atual) && /\d/.test(p) && !/\d\s*$/.test(atual)) { out.push(atual); atual = p; }
+    else atual = atual ? atual + ' e ' + p : p;
   }
-  const cent = Math.round(r.valor * 100), vParc = r.parc > 1 && !r.porParcela ? Math.floor(cent / r.parc) : cent;
+  if (atual) out.push(atual);
+  const itens = out.map(entenderFrase);
+  // "pizza 60 e gasolina 100 ontem": a data falada vale para todos os itens
+  const comData = out.map(p => /\b(anteontem|ontem|dia \d{1,2})\b/.test(semAcento(p)));
+  const k = comData.indexOf(true);
+  if (k >= 0 && comData.filter(Boolean).length === 1) itens.forEach(x => x.data = itens[k].data);
+  return itens;
+}
+let VOZ = [];
+function mostrarPrevia() {
+  const txt = $('voz-txt').value.trim();
+  VOZ = txt ? separarFrase(txt) : [];
+  const ok = VOZ.length && VOZ.every(r => r.valor > 0);
+  $('voz-prev').innerHTML = VOZ.map(r => {
+    const out = r.tipo === 'despesa', quando = r.data === hojeISO() ? 'hoje' : r.data.split('-').reverse().slice(0, 2).join('/');
+    return `<div class="voz-item"><div class="b ${out ? 'out' : 'in'}">${icone(r.tipo, r.cat)}</div>
+      <div class="m"><div class="t">${esc(r.desc)}</div><div class="s">${esc(r.cat)} · ${esc(quando)}${r.parc > 1 ? ' · ' + r.parc + 'x' : ''}</div></div>
+      <div class="v ${out ? 'out' : 'in'}">${r.valor > 0 ? (out ? '− ' : '+ ') + brl(r.valor) : '<span class="muted">sem valor</span>'}</div></div>`;
+  }).join('');
+  $('voz-acoes').hidden = !VOZ.length;
+  $('voz-ok').disabled = !ok;
+  $('voz-ok').textContent = VOZ.length > 1 ? `Lançar ${VOZ.length}` : 'Lançar';
+  $('voz-ajustar').hidden = VOZ.length > 1;
+  $('voz-acoes').classList.toggle('duas', VOZ.length <= 1);
+  $('voz-err').textContent = VOZ.length && !ok ? 'Não entendi o valor. Fale de novo, corrija o texto ou toque em Ajustar.' : '';
+}
+$('voz-txt').addEventListener('input', mostrarPrevia);
+$('voz-ajustar').onclick = () => {
+  const r = VOZ[0]; if (!r) return;
+  fechar('s-voz'); abrirLc(null); setTipo(r.tipo); lcCat = r.cat; desenharCats();
+  $('lc-desc').value = r.desc; $('lc-data').value = r.data;
+  if (r.valor > 0) $('lc-valor').value = r.valor.toFixed(2).replace('.', ',');
+};
+async function lancarVoz() {
+  if (!VOZ.length || !VOZ.every(r => r.valor > 0)) return;
   const linhas = [];
-  for (let i = 0; i < r.parc; i++) {
-    const v = r.parc > 1 && !r.porParcela && i === r.parc - 1 ? cent - vParc * (r.parc - 1) : vParc;
-    linhas.push({dono:S.espaco, tipo:r.tipo, valor:v / 100, categoria:r.cat, data:addMes(r.data, i),
-      descricao:(r.parc > 1 ? `${r.desc} (${i + 1}/${r.parc})` : r.desc).slice(0, 120)});
+  for (const r of VOZ) {
+    const cent = Math.round(r.valor * 100), vParc = r.parc > 1 && !r.porParcela ? Math.floor(cent / r.parc) : cent;
+    for (let i = 0; i < r.parc; i++) {
+      const v = r.parc > 1 && !r.porParcela && i === r.parc - 1 ? cent - vParc * (r.parc - 1) : vParc;
+      linhas.push({dono:S.espaco, tipo:r.tipo, valor:v / 100, categoria:r.cat, data:addMes(r.data, i),
+        descricao:(r.parc > 1 ? `${r.desc} (${i + 1}/${r.parc})` : r.desc).slice(0, 120)});
+    }
   }
+  $('voz-ok').disabled = true;
   const {data, error} = await sb.from('juntos_lancamentos').insert(linhas).select('id');
-  if (error) { $('voz-err').textContent = 'Não foi possível lançar.'; return; }
+  if (error) { $('voz-err').textContent = 'Não foi possível lançar. Verifique a internet.'; $('voz-ok').disabled = false; return; }
   fechar('s-voz');
-  const d = deISO(r.data); S.gAno = d.getFullYear(); S.gMes = d.getMonth();
+  const d = deISO(VOZ[0].data); S.gAno = d.getFullYear(); S.gMes = d.getMonth();
   await carregarGastos();
-  const ids = (data || []).map(x => x.id);
-  aviso(`${r.tipo === 'receita' ? '+' : '−'} ${r.parc > 1 ? r.parc + 'x de ' + brl(vParc / 100) : brl(r.valor)} · ${r.desc} · ${r.cat}`, 'Desfazer', async () => {
+  const ids = (data || []).map(x => x.id), tot = VOZ.reduce((s, r) => s + r.valor, 0);
+  aviso(VOZ.length > 1 ? `${VOZ.length} lançamentos · ${brl(tot)}` : `${VOZ[0].tipo === 'receita' ? '+' : '−'} ${brl(VOZ[0].valor)} · ${VOZ[0].desc}`, 'Desfazer', async () => {
     const {error} = await sb.from('juntos_lancamentos').delete().in('id', ids);
     if (error) { aviso('Não foi possível desfazer'); return; }
     aviso('Desfeito'); carregarGastos();
   });
 }
 const Reconhecedor = window.SpeechRecognition || window.webkitSpeechRecognition;
+const ANDROID = /Android/i.test(navigator.userAgent);
 let REC = null, OUVINDO = false;
+function pararOuvir() { if (REC && OUVINDO) { REC.onend = null; try { REC.abort(); } catch (e) {} } OUVINDO = false; $('voz-bola').classList.remove('on'); $('voz-st').textContent = 'Toque para falar'; }
 function ouvir() {
   $('voz-err').textContent = '';
   if (!Reconhecedor) { $('voz-st').textContent = 'Use o 🎤 do teclado'; $('voz-txt').focus(); return; }
-  if (OUVINDO) { REC && REC.stop(); return; }
-  REC = new Reconhecedor(); REC.lang = 'pt-BR'; REC.interimResults = true; REC.continuous = false;
-  let final = '';
-  REC.onstart = () => { OUVINDO = true; $('voz-bola').classList.add('on'); $('voz-st').textContent = 'Ouvindo…'; };
+  if (OUVINDO) { REC.stop(); return; }
+  REC = new Reconhecedor(); REC.lang = 'pt-BR'; REC.interimResults = true; REC.continuous = false; REC.maxAlternatives = 1;
+  let ouvido = '';
+  REC.onstart = () => { OUVINDO = true; $('voz-bola').classList.add('on'); $('voz-st').textContent = 'Ouvindo… fale o gasto'; $('voz-txt').value = ''; mostrarPrevia(); };
   REC.onresult = ev => {
-    let txt = '';
-    for (let i = ev.resultIndex; i < ev.results.length; i++) { txt += ev.results[i][0].transcript; if (ev.results[i].isFinal) final += ev.results[i][0].transcript; }
-    $('voz-txt').value = final || txt;
+    // No Android o navegador repete a frase inteira a cada resultado; usa só o último. Nos outros, junta tudo.
+    const res = Array.from(ev.results).map(x => x[0].transcript.trim()).filter(Boolean);
+    ouvido = ANDROID ? (res[res.length - 1] || '') : res.join(' ');
+    $('voz-txt').value = ouvido; mostrarPrevia();
   };
   REC.onerror = ev => {
-    $('voz-err').textContent = ev.error === 'not-allowed' || ev.error === 'service-not-allowed' ? 'Microfone bloqueado. Libere nas configurações do navegador ou use o 🎤 do teclado.'
-      : ev.error === 'no-speech' ? 'Não ouvi nada. Toque e fale de novo.' : 'Não consegui ouvir. Tente de novo ou digite.';
+    $('voz-err').textContent = ev.error === 'not-allowed' || ev.error === 'service-not-allowed' ? 'Microfone bloqueado. Libere o microfone para o app nas configurações, ou use o 🎤 do teclado aqui embaixo.'
+      : ev.error === 'no-speech' ? 'Não ouvi nada. Toque no 🎤 e fale de novo.' : ev.error === 'network' ? 'O reconhecimento de voz precisa de internet.' : 'Não consegui ouvir. Tente de novo ou digite.';
   };
   REC.onend = () => {
-    OUVINDO = false; $('voz-bola').classList.remove('on'); $('voz-st').textContent = 'Toque para falar';
-    const t = (final || $('voz-txt').value).trim();
-    if (t && $('s-voz').classList.contains('on')) lancarFrase(t);
+    OUVINDO = false; $('voz-bola').classList.remove('on');
+    $('voz-st').textContent = ouvido ? 'Confira e toque em Lançar' : 'Toque para falar';
+    mostrarPrevia();
   };
   try { REC.start(); } catch (e) { $('voz-err').textContent = 'Não consegui abrir o microfone.'; }
 }
-$('fab-mic').onclick = () => { $('voz-txt').value = ''; $('voz-err').textContent = ''; abrir('s-voz'); ouvir(); };
+$('fab-mic').onclick = () => { $('voz-txt').value = ''; mostrarPrevia(); $('voz-err').textContent = ''; abrir('s-voz'); ouvir(); };
 $('voz-bola').onclick = ouvir;
-$('f-voz').onsubmit = e => { e.preventDefault(); if (OUVINDO && REC) { REC.onend = null; REC.abort(); OUVINDO = false; $('voz-bola').classList.remove('on'); } lancarFrase($('voz-txt').value); };
-// Fechar a folha para de ouvir sem lançar.
-new MutationObserver(() => { if (!$('s-voz').classList.contains('on') && OUVINDO && REC) { REC.onend = null; REC.abort(); OUVINDO = false; $('voz-bola').classList.remove('on'); $('voz-st').textContent = 'Toque para falar'; } })
+$('f-voz').onsubmit = e => { e.preventDefault(); pararOuvir(); mostrarPrevia(); lancarVoz(); };
+new MutationObserver(() => { if (!$('s-voz').classList.contains('on')) pararOuvir(); })
   .observe($('s-voz'), {attributes:true, attributeFilter:['class']});
 
 /* ---------- Compartilhar ---------- */
@@ -961,5 +1104,6 @@ setInterval(() => { if (!document.hidden && S.eu && !document.querySelector('.ve
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
+<script src="fatura.js"></script>
 </body>
 </html>
