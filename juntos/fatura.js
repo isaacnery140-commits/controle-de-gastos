@@ -1,8 +1,8 @@
-// Juntos: ler a fatura do cartão (PDF, planilha, CSV, OFX ou texto colado), conferir e importar.
-// A leitura é a mesma do app Controle de Gastos (src/fatura.js), com as categorias do Juntos.
+// Organiza: ler a fatura do cartão (PDF, planilha, CSV, OFX ou texto colado), conferir e importar.
+// A leitura é a mesma do app Controle de Gastos (src/fatura.js), com as categorias do Organiza.
 const isoYMD = (y, m, d) => y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
 const fimMes = (y, m) => new Date(y, m + 1, 0).getDate();
-// Categoria do dicionário de lojas -> categoria do Juntos
+// Categoria do dicionário de lojas -> categoria do Organiza
 const FX_PARA = {'iFood / Delivery':'Alimentação','Assinaturas':'Contas','Tarifas do cartão':'Contas','Combustível':'Transporte','Transporte':'Transporte',
   'Compras':'Compras','Casa (itens)':'Casa','Mercado (comida)':'Mercado','Restaurantes':'Alimentação','Saúde':'Saúde','Contas':'Contas','Lazer':'Lazer','Educação':'Educação','Moradia':'Casa'};
 const FX_DIC=[

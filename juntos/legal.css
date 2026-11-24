@@ -1,4 +1,4 @@
-/* Estilo das páginas públicas do Juntos (termos, privacidade, ajuda, exclusão de conta) */
+/* Estilo das páginas públicas do Organiza (termos, privacidade, ajuda, exclusão de conta) */
 :root{--bg:#f3f4f0;--card:#fff;--ink:#1c211f;--muted:#66706b;--line:#dde1dc;--ac:#2f6f5e;--ac-soft:#e2efe9;--out:#b3402a}
 @media (prefers-color-scheme:dark){:root{--bg:#121614;--card:#1b201e;--ink:#e6ebe8;--muted:#97a29c;--line:#2c3430;--ac:#7cc4ad;--ac-soft:#1d332c;--out:#ff9a86;color-scheme:dark}}
 *{box-sizing:border-box}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Juntos — Excluir conta</title>
+<title>Organiza — Excluir conta</title>
 <meta name="theme-color" content="#2f6f5e">
 <link rel="icon" type="image/png" href="icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -28,7 +28,7 @@ ul{padding-left:20px;color:var(--muted)}
 <body>
 <main>
   <img src="icon-192.png" alt="">
-  <h1>Excluir conta do Juntos</h1>
+  <h1>Excluir conta do Organiza</h1>
   <p class="muted">Entre com o e-mail e a senha da conta. Serão apagados para sempre:</p>
   <ul>
     <li>compromissos da agenda</li>
@@ -63,7 +63,7 @@ $('f').onsubmit = async e => {
     if (e2) throw new Error('Não foi possível excluir agora. Tente de novo mais tarde.');
     await sb.auth.signOut().catch(() => {});
     $('f').hidden = true;
-    msg('Pronto. Sua conta e seus dados do Juntos foram excluídos.', 'ok');
+    msg('Pronto. Sua conta e seus dados do Organiza foram excluídos.', 'ok');
   } catch (err) { msg(err.message, 'err'); $('ok').disabled = false; }
 };
 </script>

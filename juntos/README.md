@@ -1,4 +1,4 @@
-# Juntos: agenda e gastos (app de teste)
+# Organiza: agenda e gastos (app de teste)
 
 App para celular com **agenda** e **controle de gastos** na mesma conta. Cada pessoa escolhe, para cada e-mail, o que compartilhar:
 
@@ -36,7 +36,7 @@ Na aba Gastos, o botão 🎤 (canto esquerdo) ouve a frase e mostra o que entend
 ## Privacidade e exclusão de conta (exigências da Play Store)
 
 - Política de privacidade: `privacidade.html` (link na tela de login e no menu ☰).
-- Excluir conta: no app (menu ☰ → Excluir conta) e pela internet em `excluir-conta.html`. Usa a função `juntos_excluir_conta` (`supabase_004_excluir_conta.sql`): apaga todos os dados do Juntos da pessoa; o login só é apagado se ela não usar o app Controle de Gastos, que divide o mesmo login.
+- Excluir conta: no app (menu ☰ → Excluir conta) e pela internet em `excluir-conta.html`. Usa a função `juntos_excluir_conta` (`supabase_004_excluir_conta.sql`): apaga todos os dados do Organiza da pessoa; o login só é apagado se ela não usar o app Controle de Gastos, que divide o mesmo login.
 
 ## Play Store
 

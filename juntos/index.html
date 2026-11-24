@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Juntos</title>
+<title>Organiza</title>
 <meta name="theme-color" content="#2f6f5e">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Juntos">
+<meta name="apple-mobile-web-app-title" content="Organiza">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -217,7 +217,7 @@ body.travado{overflow:hidden}
 <!-- Login -->
 <section id="login" hidden>
   <img class="logo" src="icon-192.png" alt="">
-  <h1>Juntos</h1>
+  <h1>Organiza</h1>
   <p class="sub">Agenda e gastos</p>
   <form id="f-login" autocomplete="on">
     <div id="l-nome-box" hidden>
@@ -385,7 +385,7 @@ body.travado{overflow:hidden}
 <!-- Folha: aceitar termos (contas antigas ou termos novos) -->
 <div class="veu" id="s-termos"><div class="folha">
   <h3>Termos de uso</h3>
-  <p class="muted" style="margin:4px 0 0">Para continuar usando o Juntos, aceite os termos.</p>
+  <p class="muted" style="margin:4px 0 0">Para continuar usando o Organiza, aceite os termos.</p>
   <label class="aceite"><input type="checkbox" id="t-aceite"><span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener">Termos de uso</a> e a <a href="privacidade.html" target="_blank" rel="noopener">Política de privacidade</a>.</span></label>
   <div class="acoes"><button class="btn" id="t-ok" disabled>Continuar</button><button class="btn sec" id="t-sair">Sair</button></div>
 </div></div>
@@ -474,7 +474,7 @@ body.travado{overflow:hidden}
 <div class="aviso" id="aviso"><span id="aviso-t"></span><button id="aviso-b" hidden></button></div>
 
 <script>
-const VERSAO = '7';
+const VERSAO = '8';
 const TERMOS_V = '1'; // mude quando os Termos de uso mudarem: todos aceitam de novo
 const SB_URL = 'https://pvhoumlovxjlqvmchobv.supabase.co';
 const SB_KEY = 'sb_publishable_qvaNLaOJjn3i43dnzww43Q_ape3VFsV';
@@ -1111,7 +1111,7 @@ $('conta-sair').onclick = async () => {
 };
 
 $('conta-excluir').onclick = async () => {
-  const t = prompt('Isso apaga para sempre sua agenda, seus gastos, faturas e compartilhamentos do Juntos.\n\nDigite EXCLUIR para confirmar:');
+  const t = prompt('Isso apaga para sempre sua agenda, seus gastos, faturas e compartilhamentos do Organiza.\n\nDigite EXCLUIR para confirmar:');
   if (!t || t.trim().toUpperCase() !== 'EXCLUIR') return;
   try { const reg = await navigator.serviceWorker?.getRegistration(); const sub = await reg?.pushManager?.getSubscription(); if (sub) await sub.unsubscribe(); } catch (e) {}
   const {error} = await sb.rpc('juntos_excluir_conta');
@@ -1158,12 +1158,12 @@ $('conta-exportar').onclick = async () => {
       q('juntos_faturas', 'cartao,vencimento,total,qtd,modo,criado_em'),
       sb.from('juntos_compart').select('dono,email,agenda,gastos,criado_em').then(r => r.data || [])
     ]);
-    const dados = {app:'Juntos', exportado_em:new Date().toISOString(), conta:{email, ...perfil}, compromissos:eventos, lancamentos, faturas,
+    const dados = {app:'Organiza', exportado_em:new Date().toISOString(), conta:{email, ...perfil}, compromissos:eventos, lancamentos, faturas,
       compartilhei_com:compart.filter(c => c.dono === eu).map(({dono, ...c}) => c),
       compartilharam_comigo:compart.filter(c => c.dono !== eu).map(c => ({de:S.nomes[c.dono] || '', agenda:c.agenda, gastos:c.gastos}))};
-    const nome = 'juntos-meus-dados-' + hojeISO() + '.json';
+    const nome = 'organiza-meus-dados-' + hojeISO() + '.json';
     const arq = new File([JSON.stringify(dados, null, 2)], nome, {type:'application/json'});
-    if (navigator.canShare && navigator.canShare({files:[arq]})) { try { await navigator.share({files:[arq], title:'Meus dados do Juntos'}); return; } catch (e) { if (e.name === 'AbortError') return; } }
+    if (navigator.canShare && navigator.canShare({files:[arq]})) { try { await navigator.share({files:[arq], title:'Meus dados do Organiza'}); return; } catch (e) { if (e.name === 'AbortError') return; } }
     const a = document.createElement('a'); a.href = URL.createObjectURL(arq); a.download = nome; document.body.append(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
     aviso('Arquivo gerado');
