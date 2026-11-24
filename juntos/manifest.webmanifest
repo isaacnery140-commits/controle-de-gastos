@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Organiza: Agenda e Gastos",
-  "short_name": "Organiza",
+  "name": "Finagenda: Agenda e Gastos",
+  "short_name": "Finagenda",
   "description": "Agenda e controle de gastos, compartilhados só com quem você escolher",
   "lang": "pt-BR",
   "start_url": "./",

@@ -1,4 +1,4 @@
-// Envia notificações (Web Push) do app Organiza para os celulares das pessoas.
+// Envia notificações (Web Push) do app Finagenda para os celulares das pessoas.
 // Só aceita chamadas do próprio banco, que mandam o segredo guardado em juntos_config.
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -20,7 +20,7 @@ Deno.serve(async (req: Request) => {
   const body = await req.json().catch(() => ({}));
   let msgs: Msg[] = [];
   if (body.kind === "send") {
-    msgs = [{ users: body.users ?? [], title: String(body.title ?? "Organiza"), body: String(body.body ?? ""), tela: body.tela }];
+    msgs = [{ users: body.users ?? [], title: String(body.title ?? "Finagenda"), body: String(body.body ?? ""), tela: body.tela }];
   } else if (body.kind === "lembretes") {
     const { data, error } = await sb.rpc("juntos_lembretes");
     if (error) return json({ error: error.message }, 500);

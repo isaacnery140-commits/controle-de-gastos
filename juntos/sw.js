@@ -1,5 +1,5 @@
 // Guarda os arquivos do app para abrir rápido e como app instalado. Os dados sempre vêm do servidor.
-const CACHE = "organiza-v8";
+const CACHE = "finagenda-v9";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./fatura.js", "./legal.css", "./termos.html", "./privacidade.html", "./suporte.html"];
 const LIB = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
 self.addEventListener("install", e => {
@@ -24,7 +24,7 @@ self.addEventListener("fetch", e => {
 self.addEventListener("push", e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : "" }; }
-  e.waitUntil(self.registration.showNotification(d.title || "Organiza", {
+  e.waitUntil(self.registration.showNotification(d.title || "Finagenda", {
     body: d.body || "", icon: "icon-192.png", badge: "icon-192.png", data: { url: d.url || "./" }, vibrate: [120, 60, 120]
   }));
 });
