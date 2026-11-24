@@ -140,6 +140,14 @@ nav button.on{color:var(--ac)}
 .acoes.duas{grid-template-columns:1fr 1fr}
 .aviso{position:fixed;left:50%;bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 90px);transform:translateX(-50%);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;opacity:0;transition:opacity .2s;pointer-events:none}
 .aviso.on{opacity:1;pointer-events:auto}
+.aceite{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;color:var(--muted);cursor:pointer}
+.aceite input{width:20px;height:20px;flex:none;margin:1px 0 0;accent-color:var(--ac)}
+.aceite a,.rodape-legal a{color:var(--ac);font-weight:600}
+.rodape-legal{text-align:center;font-size:13px;color:var(--muted);margin-top:10px;line-height:1.7}
+.menu-lista{margin-top:14px;border-top:1px solid var(--line)}
+.menu-lista a,.menu-lista button{display:flex;align-items:center;gap:12px;width:100%;padding:14px 4px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:600;text-align:left}
+.menu-lista .seta{margin-left:auto;color:var(--muted)}
+.menu-lista .perigo{color:var(--out)}
 .g-acoes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .g-acoes button{padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:15px}
 .arq{display:flex;align-items:center;justify-content:center;gap:8px;padding:18px;border:2px dashed var(--ac);border-radius:14px;color:var(--ac);font-weight:700;background:var(--ac-soft);margin-top:6px}
@@ -220,11 +228,13 @@ body.travado{overflow:hidden}
     <input id="l-email" type="email" required autocomplete="email" inputmode="email">
     <label for="l-senha">Senha</label>
     <input id="l-senha" type="password" required minlength="6" autocomplete="current-password">
+    <label class="aceite" id="l-aceite-box" hidden><input type="checkbox" id="l-aceite"><span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener">Termos de uso</a> e a <a href="privacidade.html" target="_blank" rel="noopener">Política de privacidade</a>.</span></label>
     <button class="btn" id="l-ok" type="submit">Entrar</button>
     <div class="err" id="l-err"></div>
   </form>
   <button class="troca" id="l-troca" type="button">Criar conta</button>
-  <a class="lnk" href="privacidade.html" style="font-size:13px;font-weight:500">Política de privacidade</a>
+  <button class="lnk" id="l-esqueci" type="button" style="font-size:14px;font-weight:500">Esqueci minha senha</button>
+  <div class="rodape-legal"><a href="termos.html">Termos de uso</a> · <a href="privacidade.html">Privacidade</a> · <a href="suporte.html">Ajuda</a></div>
 </section>
 
 <!-- App -->
@@ -360,11 +370,37 @@ body.travado{overflow:hidden}
   <div class="acoes">
     <button class="btn sec" id="conta-salvar">Salvar nome</button>
     <button class="btn sec" id="conta-notif">🔔 Ativar notificações</button>
-    <button class="btn del" id="conta-sair">Sair da conta</button>
   </div>
-  <a class="lnk" href="privacidade.html" target="_blank" rel="noopener">Política de privacidade</a>
-  <button class="lnk" id="conta-excluir" type="button" style="color:var(--out)">Excluir conta</button>
+  <div class="menu-lista">
+    <a href="suporte.html">❓ Ajuda e suporte<span class="seta">›</span></a>
+    <a href="termos.html">📄 Termos de uso<span class="seta">›</span></a>
+    <a href="privacidade.html">🔒 Política de privacidade<span class="seta">›</span></a>
+    <button type="button" id="conta-exportar">⬇️ Exportar meus dados<span class="seta">›</span></button>
+    <button type="button" id="conta-sair">🚪 Sair da conta<span class="seta">›</span></button>
+    <button type="button" id="conta-excluir" class="perigo">🗑️ Excluir conta<span class="seta">›</span></button>
+  </div>
   <p class="muted" style="text-align:center;font-size:12px;margin-top:16px">v<span id="versao"></span></p>
+</div></div>
+
+<!-- Folha: aceitar termos (contas antigas ou termos novos) -->
+<div class="veu" id="s-termos"><div class="folha">
+  <h3>Termos de uso</h3>
+  <p class="muted" style="margin:4px 0 0">Para continuar usando o Juntos, aceite os termos.</p>
+  <label class="aceite"><input type="checkbox" id="t-aceite"><span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener">Termos de uso</a> e a <a href="privacidade.html" target="_blank" rel="noopener">Política de privacidade</a>.</span></label>
+  <div class="acoes"><button class="btn" id="t-ok" disabled>Continuar</button><button class="btn sec" id="t-sair">Sair</button></div>
+</div></div>
+
+<!-- Folha: nova senha (link de "esqueci minha senha") -->
+<div class="veu" id="s-senha"><div class="folha">
+  <h3>Criar nova senha</h3>
+  <form id="f-senha">
+    <label for="ns-1">Nova senha</label>
+    <input id="ns-1" type="password" required minlength="6" autocomplete="new-password">
+    <label for="ns-2">Repita a nova senha</label>
+    <input id="ns-2" type="password" required minlength="6" autocomplete="new-password">
+    <div class="acoes"><button class="btn" type="submit">Salvar nova senha</button></div>
+    <div class="err" id="ns-err"></div>
+  </form>
 </div></div>
 
 <!-- Folha: lançar falando -->
@@ -438,7 +474,8 @@ body.travado{overflow:hidden}
 <div class="aviso" id="aviso"><span id="aviso-t"></span><button id="aviso-b" hidden></button></div>
 
 <script>
-const VERSAO = '6';
+const VERSAO = '7';
+const TERMOS_V = '1'; // mude quando os Termos de uso mudarem: todos aceitam de novo
 const SB_URL = 'https://pvhoumlovxjlqvmchobv.supabase.co';
 const SB_KEY = 'sb_publishable_qvaNLaOJjn3i43dnzww43Q_ape3VFsV';
 const sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}});
@@ -486,6 +523,8 @@ let criando = false;
 $('l-troca').onclick = () => {
   criando = !criando;
   $('l-nome-box').hidden = !criando;
+  $('l-aceite-box').hidden = !criando;
+  $('l-esqueci').hidden = criando;
   $('l-ok').textContent = criando ? 'Criar conta' : 'Entrar';
   $('l-troca').textContent = criando ? 'Já tenho conta' : 'Criar conta';
   $('l-senha').autocomplete = criando ? 'new-password' : 'current-password';
@@ -497,7 +536,8 @@ $('f-login').onsubmit = async e => {
   $('l-err').textContent = ''; $('l-ok').disabled = true;
   try {
     if (criando) {
-      const {data, error} = await sb.auth.signUp({email, password:senha, options:{data:{nome}, emailRedirectTo: location.origin + location.pathname}});
+      if (!$('l-aceite').checked) throw new Error('Para criar a conta, aceite os Termos de uso e a Política de privacidade.');
+      const {data, error} = await sb.auth.signUp({email, password:senha, options:{data:{nome, termos_versao:TERMOS_V, termos_aceitos_em:new Date().toISOString()}, emailRedirectTo: location.origin + location.pathname}});
       if (error) throw error;
       if (!data.session) { $('l-err').style.color = 'var(--in)'; $('l-err').textContent = 'Conta criada. Confirme pelo link enviado ao seu e-mail e depois entre.'; criando = true; $('l-troca').click(); return; }
     } else {
@@ -513,6 +553,7 @@ $('f-login').onsubmit = async e => {
 
 sb.auth.onAuthStateChange((ev, sessao) => {
   const u = sessao?.user || null;
+  if (ev === 'PASSWORD_RECOVERY') setTimeout(() => { $('ns-err').textContent = ''; abrir('s-senha'); }, 300);
   if (u && (!S.eu || S.eu.id !== u.id)) { S.eu = u; iniciar(); }
   else if (!u) { S.eu = null; $('app').hidden = true; $('login').hidden = false; }
 });
@@ -521,9 +562,13 @@ sb.auth.onAuthStateChange((ev, sessao) => {
 async function iniciar() {
   $('login').hidden = true; $('app').hidden = false;
   const email = (S.eu.email || '').toLowerCase();
-  const {data: perfil} = await sb.from('juntos_perfis').select('nome').eq('id', S.eu.id).maybeSingle();
+  const {data: perfil} = await sb.from('juntos_perfis').select('nome,termos_versao').eq('id', S.eu.id).maybeSingle();
   S.nome = perfil?.nome || S.eu.user_metadata?.nome || email.split('@')[0];
-  sb.from('juntos_perfis').upsert({id:S.eu.id, nome:S.nome.slice(0, 40), email}).then(() => {});
+  const md = S.eu.user_metadata || {};
+  const linha = {id:S.eu.id, nome:S.nome.slice(0, 40), email};
+  if (perfil?.termos_versao !== TERMOS_V && md.termos_versao === TERMOS_V) Object.assign(linha, {termos_versao:TERMOS_V, termos_aceitos_em:md.termos_aceitos_em || new Date().toISOString()});
+  await sb.from('juntos_perfis').upsert(linha);
+  if (perfil?.termos_versao !== TERMOS_V && md.termos_versao !== TERMOS_V) { $('t-aceite').checked = false; $('t-ok').disabled = true; abrir('s-termos'); }
   S.espaco = localStorage.getItem('juntos.espaco.' + S.eu.id) || S.eu.id;
   const v = location.hash.slice(1) || localStorage.getItem('juntos.view');
   if (location.hash) history.replaceState(null, '', location.pathname);
@@ -607,7 +652,7 @@ $('fab').onclick = () => S.view === 'agenda' ? abrirEv(null) : abrirLc(null);
 /* ---------- Folhas ---------- */
 function abrir(id) { $(id).classList.add('on'); }
 function fechar(id) { $(id).classList.remove('on'); }
-document.querySelectorAll('.veu').forEach(v => v.addEventListener('click', e => { if (e.target === v) fechar(v.id); }));
+document.querySelectorAll('.veu').forEach(v => v.addEventListener('click', e => { if (e.target === v && !['s-termos', 's-senha'].includes(v.id)) fechar(v.id); }));
 document.querySelectorAll('.puxa').forEach(p => p.onclick = () => fechar(p.closest('.veu').id));
 
 /* ---------- Agenda ---------- */
@@ -1075,6 +1120,55 @@ $('conta-excluir').onclick = async () => {
   try { localStorage.removeItem('juntos.espaco.' + S.eu.id); } catch (e) {}
   await sb.auth.signOut().catch(() => {});
   aviso('Conta excluída');
+};
+
+/* ---------- Termos, senha e dados ---------- */
+$('t-aceite').onchange = () => $('t-ok').disabled = !$('t-aceite').checked;
+$('t-ok').onclick = async () => {
+  const {error} = await sb.from('juntos_perfis').update({termos_versao:TERMOS_V, termos_aceitos_em:new Date().toISOString()}).eq('id', S.eu.id);
+  if (error) { aviso('Não foi possível salvar. Verifique a internet.'); return; }
+  fechar('s-termos');
+};
+$('t-sair').onclick = async () => { fechar('s-termos'); await sb.auth.signOut(); };
+$('l-esqueci').onclick = async () => {
+  const email = $('l-email').value.trim().toLowerCase();
+  $('l-err').style.color = '';
+  if (!/^\S+@\S+\.\S+$/.test(email)) { $('l-err').textContent = 'Digite seu e-mail acima e toque de novo em "Esqueci minha senha".'; $('l-email').focus(); return; }
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: location.origin + location.pathname});
+  if (error) { $('l-err').textContent = /rate|seconds/i.test(error.message) ? 'Aguarde um minuto e tente de novo.' : 'Não foi possível enviar agora. Tente de novo.'; return; }
+  $('l-err').style.color = 'var(--in)';
+  $('l-err').textContent = 'Se houver uma conta com esse e-mail, enviamos um link para criar uma nova senha.';
+};
+$('f-senha').onsubmit = async e => {
+  e.preventDefault();
+  if ($('ns-1').value !== $('ns-2').value) { $('ns-err').textContent = 'As senhas não são iguais.'; return; }
+  const {error} = await sb.auth.updateUser({password:$('ns-1').value});
+  if (error) { $('ns-err').textContent = /different|same/i.test(error.message) ? 'Use uma senha diferente da anterior.' : 'Não foi possível salvar. Abra o link do e-mail de novo.'; return; }
+  fechar('s-senha'); $('ns-1').value = $('ns-2').value = ''; aviso('Senha alterada');
+};
+$('conta-exportar').onclick = async () => {
+  const b = $('conta-exportar'); b.disabled = true;
+  try {
+    const eu = S.eu.id, email = (S.eu.email || '').toLowerCase();
+    const q = (t, sel = '*') => sb.from(t).select(sel).eq('dono', eu).then(r => { if (r.error) throw r.error; return r.data; });
+    const [perfil, eventos, lancamentos, faturas, compart] = await Promise.all([
+      sb.from('juntos_perfis').select('nome,email,termos_versao,termos_aceitos_em,criado_em').eq('id', eu).maybeSingle().then(r => r.data),
+      q('juntos_eventos', 'titulo,data,hora,local,notas,feito,aviso_min,criado_em'),
+      q('juntos_lancamentos', 'tipo,valor,descricao,categoria,data,data_compra,criado_em'),
+      q('juntos_faturas', 'cartao,vencimento,total,qtd,modo,criado_em'),
+      sb.from('juntos_compart').select('dono,email,agenda,gastos,criado_em').then(r => r.data || [])
+    ]);
+    const dados = {app:'Juntos', exportado_em:new Date().toISOString(), conta:{email, ...perfil}, compromissos:eventos, lancamentos, faturas,
+      compartilhei_com:compart.filter(c => c.dono === eu).map(({dono, ...c}) => c),
+      compartilharam_comigo:compart.filter(c => c.dono !== eu).map(c => ({de:S.nomes[c.dono] || '', agenda:c.agenda, gastos:c.gastos}))};
+    const nome = 'juntos-meus-dados-' + hojeISO() + '.json';
+    const arq = new File([JSON.stringify(dados, null, 2)], nome, {type:'application/json'});
+    if (navigator.canShare && navigator.canShare({files:[arq]})) { try { await navigator.share({files:[arq], title:'Meus dados do Juntos'}); return; } catch (e) { if (e.name === 'AbortError') return; } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(arq); a.download = nome; document.body.append(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+    aviso('Arquivo gerado');
+  } catch (e) { aviso('Não foi possível exportar agora'); }
+  finally { b.disabled = false; }
 };
 
 /* ---------- Notificações ---------- */

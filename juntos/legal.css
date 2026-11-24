@@ -1,0 +1,16 @@
+/* Estilo das páginas públicas do Juntos (termos, privacidade, ajuda, exclusão de conta) */
+:root{--bg:#f3f4f0;--card:#fff;--ink:#1c211f;--muted:#66706b;--line:#dde1dc;--ac:#2f6f5e;--ac-soft:#e2efe9;--out:#b3402a}
+@media (prefers-color-scheme:dark){:root{--bg:#121614;--card:#1b201e;--ink:#e6ebe8;--muted:#97a29c;--line:#2c3430;--ac:#7cc4ad;--ac-soft:#1d332c;--out:#ff9a86;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.6}
+main{max-width:720px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:26px;margin:0 0 2px;line-height:1.25} h2{font-size:18px;margin:28px 0 6px} h3{font-size:16px;margin:18px 0 4px}
+p{margin:8px 0}
+.muted{color:var(--muted)} a{color:var(--ac);font-weight:600}
+ul,ol{padding-left:22px} li{margin:4px 0}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.top img{width:48px;height:48px;border-radius:14px;flex:none}
+.caixa{background:var(--ac-soft);border-radius:14px;padding:12px 16px;margin:16px 0}
+.links{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:15px}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:8px 0}
+summary{font-weight:700;cursor:pointer}
